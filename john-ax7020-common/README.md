@@ -56,9 +56,11 @@ AXI 地址与写掩码校验、输入公共头检查、原生数据转接、结�
 & E:/Xilinx/Vivado/2020.1/bin/vivado.bat -mode batch -source john-ax7020-common/vivado/test_axi_shell.tcl
 & E:/Xilinx/Vivado/2020.1/bin/vivado.bat -mode batch -source john-ax7020-common/vivado/synth_axi_shell.tcl
 python -m unittest discover -s john-ax7020-common/software -v
+& E:/Xilinx/Vivado/2020.1/bin/vivado.bat -mode batch -source john-ax7020-common/vivado/test_axi_native.tcl -tclargs 3
 ```
 
 `test_axi_shell.tcl` 使用模拟原生计算端验证总线/帧处理，不是密码算法正确性测试。
+`test_axi_native.tcl` 参数 3/4/5 分别连接 MD5/SHA256/SHA512 真实算法与公共壳，比较参考摘要；新增测试尚待完整执行通过。
 `synth_axi_shell.tcl` 的资源/时序仅属于默认 MD5 参数的公共模块独立综合，非整机布线结果。
 完整工程在各算法目录 `build/soc/*.xpr`，bcrypt 为 `build/soc8/*.xpr`。
 打开工程可查看 Block Design 的 unified 模块；顶层源码连接原生算法和 initialized/status。
