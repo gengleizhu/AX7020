@@ -1,0 +1,36 @@
+# Track only the AX7020 delivery and its interface specifications.
+/*
+!/.gitignore
+!/BASELINE.md
+!/john-ax7020-*/
+!/AX7020_*.md
+!/寄存器划分.xlsx
+!/outputs/
+/outputs/*
+!/outputs/axi-registers-20261028/
+/outputs/axi-registers-20261028/*
+!/outputs/axi-registers-20261028/*.xlsx
+!/outputs/axi-registers-20261028/build_registers.mjs
+**/build/
+**/logs/
+**/.Xil/
+**/NA/
+**/__pycache__/
+**/node_modules/
+**/*.jou
+**/*.log
+**/*.wdb
+**/*.vcd
+**/*.exe
+**/~$*
+# Upstream runtime dictionaries and unrelated board bitstreams are not build inputs.
+**/third_party/john/run/*.chr
+**/third_party/john/run/password.lst
+**/third_party/john/run/ztex/*.bit
+# Only upstream FPGA/protocol sources are needed for this hardware baseline.
+/john-ax7020-bcrypt8/third_party/john/*
+!/john-ax7020-bcrypt8/third_party/john/LICENSE
+!/john-ax7020-bcrypt8/third_party/john/README.md
+!/john-ax7020-bcrypt8/third_party/john/src/
+/john-ax7020-bcrypt8/third_party/john/src/*
+!/john-ax7020-bcrypt8/third_party/john/src/ztex/

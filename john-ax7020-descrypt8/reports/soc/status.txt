@@ -1,0 +1,4 @@
+cores=8 candidate_slots=128 blackboxes=0 scope=full_PS_DMA_PL period_ns=10 wns_ns=0.855
+estimated_fmax_mhz=109.34937124111536
+board=AX7020 part=xc7z020clg400-2 vivado=2020.1
+bitstream_generated=true xsa_generated=true board_tested=false

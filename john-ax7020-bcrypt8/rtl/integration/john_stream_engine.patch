@@ -1,0 +1,173 @@
+--- john_original/bcrypt/bcrypt.v
++++ integration/john_stream_engine.v
+@@ -1,17 +1,7 @@
+-`timescale 1ns / 1ps
+-/*
+- * This software is Copyright (c) 2016-2017,2019 Denis Burykin
+- * [denis_burykin yahoo com], [denis-burykin2014 yandex ru]
+- * and it is hereby released to the general public under the following terms:
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted.
+- *
+- */
+ `include "bcrypt.vh"
+ 
+-`ifdef	SIMULATION
+-
+-module bcrypt #(
++
++module john_stream_engine #(
+ 	parameter NUM_CORES = 12, // Actually number of proxies
+ 	parameter VERSION = `PKT_COMM_VERSION,
+ 	parameter PKT_MAX_LEN = 16*65536,
+@@ -26,7 +16,7 @@
+ 
+ 	// I/O using hs_io_v2
+ 	input IFCLK,
+-	input [15:0] hs_input_din,
++	input [7:0] hs_input_din,
+ 	input hs_input_wr_en,
+ 	output hs_input_almost_full,
+ 	output hs_input_prog_full,
+@@ -71,20 +61,13 @@
+ 	// ********************************************************
+ 	wire [7:0] din;
+ 
+-	input_fifo input_fifo(
+-		.wr_clk(IFCLK),
+-		.din(hs_input_din), // to Cypress IO
+-		.wr_en(hs_input_wr_en), // to Cypress IO
+-		.full(),
+-		.almost_full(hs_input_almost_full),
+-		.prog_full(hs_input_prog_full), // to Cypress IO
+-
+-		.rd_clk(CLK),
+-		.dout(din),
+-		.rd_en(rd_en),
+-		.almost_empty(),
+-		.empty(empty)
+-	);
++
++    // 上游由AXI串行器保持字节，直接使用原解析器的消费条件。
++    assign din = hs_input_din;
++    wire empty = ~hs_input_wr_en;
++    assign hs_input_almost_full = ~rd_en;
++    assign hs_input_prog_full = ~rd_en;
++
+ 
+ 
+ 	// ********************************************************
+@@ -466,113 +449,3 @@
+ 
+ endmodule
+ 
+-`else
+-
+-module bcrypt #(
+-	parameter NUM_CORES = 12,
+-	parameter VERSION = `PKT_COMM_VERSION,
+-	parameter PKT_MAX_LEN = 16*65536,
+-	parameter PKT_LEN_MSB = `MSB(PKT_MAX_LEN),
+-	parameter WORD_MAX_LEN = `PLAINTEXT_LEN,
+-	parameter CHAR_BITS = `CHAR_BITS,
+-	parameter RANGES_MAX = `RANGES_MAX,
+-	parameter RANGE_INFO_MSB = 1 + `MSB(WORD_MAX_LEN-1),
+-	parameter SIMULATION = 0
+-	)(
+-	input CORE_CLK,
+-
+-	// I/O using hs_io_v2
+-	input IFCLK,
+-	input [15:0] hs_input_din,
+-	input hs_input_wr_en,
+-	output hs_input_almost_full,
+-	output hs_input_prog_full,
+-
+-	output [15:0] output_dout,
+-	input output_rd_en,
+-	output output_empty,
+-	output [15:0] output_limit,
+-	output output_limit_not_done,
+-	input output_mode_limit,
+-	input reg_output_limit,
+-
+-	// Status signals for internal usage
+-	output reg idle = 0, error_r = 0,
+-
+-	// control input (VCR interface)
+-	input [7:0] app_mode,
+-	// status output (VCR interface)
+-	output [7:0] app_status,
+-	output [7:0] pkt_comm_status,
+-	output [7:0] debug2, debug3,
+-	//output [255:0] debug,
+-
+-	input mode_cmp,
+-	// Cores are moved to top-level module.
+-	output [7:0] core_din,
+-	output [1:0] core_ctrl,
+-	output [NUM_CORES-1:0] core_wr_en,
+-	input [NUM_CORES-1:0] core_init_ready, core_crypt_ready,
+-	output [NUM_CORES-1:0] core_rd_en,
+-	input [NUM_CORES-1:0] core_empty,
+-	input [NUM_CORES-1:0] core_dout
+-	);
+-
+-endmodule
+-
+-`endif
+-
+-module bcrypt_dummy #(
+-	parameter NUM_CORES = 12,
+-	parameter VERSION = `PKT_COMM_VERSION,
+-	parameter PKT_MAX_LEN = 16*65536,
+-	parameter PKT_LEN_MSB = `MSB(PKT_MAX_LEN),
+-	parameter WORD_MAX_LEN = `PLAINTEXT_LEN,
+-	parameter CHAR_BITS = `CHAR_BITS,
+-	parameter RANGES_MAX = `RANGES_MAX,
+-	parameter RANGE_INFO_MSB = 1 + `MSB(WORD_MAX_LEN-1),
+-	parameter SIMULATION = 0
+-	)(
+-	input CORE_CLK,
+-
+-	// I/O using hs_io_v2
+-	input IFCLK,
+-	input [15:0] hs_input_din,
+-	input hs_input_wr_en,
+-	output hs_input_almost_full,
+-	output hs_input_prog_full,
+-
+-	output [15:0] output_dout,
+-	input output_rd_en,
+-	output output_empty,
+-	output [15:0] output_limit,
+-	output output_limit_not_done,
+-	input output_mode_limit,
+-	input reg_output_limit,
+-
+-	// Status signals for internal usage
+-	output reg idle = 0, error_r = 0,
+-
+-	// control input (VCR interface)
+-	input [7:0] app_mode,
+-	// status output (VCR interface)
+-	output [7:0] app_status,
+-	output [7:0] pkt_comm_status,
+-	output [7:0] debug2, debug3,
+-	//output [255:0] debug,
+-
+-	input mode_cmp,
+-	// Cores are moved to top-level module.
+-	output [7:0] core_din,
+-	output [1:0] core_ctrl,
+-	output [NUM_CORES-1:0] core_wr_en,
+-	input [NUM_CORES-1:0] core_init_ready, core_crypt_ready,
+-	output [NUM_CORES-1:0] core_rd_en,
+-	input [NUM_CORES-1:0] core_empty,
+-	input [NUM_CORES-1:0] core_dout
+-	);
+-
+-	always @(posedge CORE_CLK)
+-		idle <= ^core_empty;
+-
+-endmodule

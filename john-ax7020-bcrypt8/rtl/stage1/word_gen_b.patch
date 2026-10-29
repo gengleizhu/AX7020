@@ -1,0 +1,11 @@
+--- john_original/pkt_comm/word_gen_b.v
++++ stage1/word_gen_b.v
+@@ -117,7 +117,7 @@
+ 	(* RAM_STYLE="DISTRIBUTED" *)
+ 	reg [7:0] range_count_max [RANGES_MAX-1 :0]; // Contains max. value for range_counter
+ 	
+-	reg [7:0] cur_range_count = 0;
++	reg [7:0] cur_range_count = 0, cur_range_count_max = 0;
+ 	reg [`MSB(RANGES_MAX-1):0] cur_range = 0;
+ 	reg range_carry = 1;
+ 		

@@ -1,0 +1,92 @@
+[
+  {
+    "index": 0,
+    "name": "legacy",
+    "password_hex": "6162636465",
+    "hash": "$2a$00$////////..............XiwFBK8OLIKiLUZR11iwkDeHZvypH9y",
+    "cost": 0,
+    "bug": false,
+    "full_result_be": "664c870ccf9034a3243566d3df79329858096f1d2b27fdca",
+    "packet_bytes": 90
+  },
+  {
+    "index": 1,
+    "name": "ascii",
+    "password_hex": "552a552a",
+    "hash": "$2a$05$CCCCCCCCCCCCCCCCCCCCC.VGOzA784oUp/Z0DY336zx7pLYAy0lwK",
+    "cost": 5,
+    "bug": false,
+    "full_result_be": "5c84350bdfbaa96ac16f615ae79f35cfdacd682d369f2389",
+    "packet_bytes": 89
+  },
+  {
+    "index": 2,
+    "name": "empty",
+    "password_hex": "",
+    "hash": "$2a$05$CCCCCCCCCCCCCCCCCCCCC.7uG0VCzI2bS7j6ymqJi9CdcdxiRTWNy",
+    "cost": 5,
+    "bug": false,
+    "full_result_be": "f702365c4d4ae1d53d97cd28b0b93f11f79fce44d560fdf1",
+    "packet_bytes": 85
+  },
+  {
+    "index": 3,
+    "name": "version_b",
+    "password_hex": "552a552a55",
+    "hash": "$2b$05$XXXXXXXXXXXXXXXXXXXXXOAcXxm9kjPGEMsLznoKqmqw7tc8WCx4a",
+    "cost": 5,
+    "bug": false,
+    "full_result_be": "09e673a3f9a544818eb8dd69a8cb28b32f6f7be604cfa710",
+    "packet_bytes": 90
+  },
+  {
+    "index": 4,
+    "name": "version_x",
+    "password_hex": "a3",
+    "hash": "$2x$05$/OK.fbVrR/bpIqNJ5ianF.CE5elHaaO4EbggVDjb8P19RukzXSM3e",
+    "cost": 5,
+    "bug": true,
+    "full_result_be": "106ee09c971c43a19d8a25c595df91dff4f09b56543b980c",
+    "packet_bytes": 86
+  },
+  {
+    "index": 5,
+    "name": "version_y",
+    "password_hex": "a3",
+    "hash": "$2y$05$/OK.fbVrR/bpIqNJ5ianF.Sa7shbm4.OzKpvFnX1pQLmQW96oUlCq",
+    "cost": 5,
+    "bug": false,
+    "full_result_be": "51cf6e8dda3a010d4caf11e9677ad2368498ffca969c4b51",
+    "packet_bytes": 86
+  },
+  {
+    "index": 6,
+    "name": "len72",
+    "password_hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "hash": "$2a$05$/OK.fbVrR/bpIqNJ5ianF.swQOIzjOiJ9GHEPuhEkvqrUyvWhEMx6",
+    "cost": 5,
+    "bug": false,
+    "full_result_be": "bb24902b595090bfc82464708c69b1b2d5b4c588c63b3ffe",
+    "packet_bytes": 156
+  },
+  {
+    "index": 7,
+    "name": "len8",
+    "password_hex": "3031323334353637",
+    "hash": "$2a$04$pIqNJ/d3.iUtNb........1ynmOuHkBNwBW8zbBj6wTB8XX4/HPiy",
+    "cost": 4,
+    "bug": false,
+    "full_result_be": "df4a684302660cfc8363ed5d0e5f32543f9967a049464d8f",
+    "packet_bytes": 93
+  },
+  {
+    "index": 8,
+    "name": "len9",
+    "password_hex": "303132333435363738",
+    "hash": "$2a$04$pIqNJ/d3.iUtNb........12LxxKuTok3B2V5Qedwkj.KlH.1uvye",
+    "cost": 4,
+    "bug": false,
+    "full_result_be": "df8373cccc15aa6e43e17ed281fca6940327240df0c7489e",
+    "packet_bytes": 94
+  }
+]
