@@ -20,7 +20,16 @@ module tb_axi_shell;
  wire native_tx_tlast,native_tx_tvalid;reg native_tx_tready=1;
  reg [31:0] native_rx_tdata=0;reg [3:0] native_rx_tkeep=15;reg native_rx_tlast=0,native_rx_tvalid=0;
  wire native_rx_tready;reg [31:0] native_status=0;reg native_initialized=0;
- john_axi_shell #(.ALGORITHM(ALG)) dut(.*);
+ wire [31:0] slice_data;wire [3:0] slice_keep;
+ wire slice_valid,slice_ready,slice_last;
+ john_result_slice slice_i(.aclk(aclk),.aresetn(aresetn),
+  .s_axis_tdata(native_rx_tdata),.s_axis_tkeep(native_rx_tkeep),
+  .s_axis_tlast(native_rx_tlast),.s_axis_tvalid(native_rx_tvalid),.s_axis_tready(native_rx_tready),
+  .m_axis_tdata(slice_data),.m_axis_tkeep(slice_keep),
+  .m_axis_tlast(slice_last),.m_axis_tvalid(slice_valid),.m_axis_tready(slice_ready));
+ john_axi_shell #(.ALGORITHM(ALG)) dut(.*,
+  .native_rx_tdata(slice_data),.native_rx_tkeep(slice_keep),
+  .native_rx_tlast(slice_last),.native_rx_tvalid(slice_valid),.native_rx_tready(slice_ready));
  integer nc=0,rc=0;reg checking=0;integer tick=0;
  reg [31:0] last_data;reg last_stalled=0;
  always @(posedge aclk)begin

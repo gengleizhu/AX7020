@@ -58,8 +58,8 @@ set algorithm_id 5
 source [file join $root .. john-ax7020-common vivado integrate_axi_shell.tcl]
 make_bd_intf_pins_external [get_bd_intf_pins unified/NATIVE_TX]
 set_property name to_pl [get_bd_intf_ports NATIVE_TX_0]
-make_bd_intf_pins_external [get_bd_intf_pins unified/NATIVE_RX]
-set_property name from_pl [get_bd_intf_ports NATIVE_RX_0]
+make_bd_intf_pins_external [get_bd_intf_pins result_slice/S_AXIS]
+set_property name from_pl [get_bd_intf_ports S_AXIS_0]
 set_property CONFIG.FREQ_HZ 100000000 [get_bd_intf_ports from_pl]
 create_bd_port -dir O -type clk clk100
 set_property CONFIG.ASSOCIATED_BUSIF {to_pl:from_pl} [get_bd_ports clk100]
@@ -118,11 +118,12 @@ report_drc -file $out/drc.rpt
 report_methodology -file $out/methodology.rpt
 set slack [get_property SLACK [lindex [get_timing_paths -max_paths 1] 0]]
 set hold_slack [get_property SLACK [lindex [get_timing_paths -delay_type min -max_paths 1] 0]]
+source [file join $root .. john-ax7020-common vivado check_routed_timing.tcl]
 set fp [open $out/status.txt w]
 puts $fp "units=4 sha512cores=16 thread_slots=64 blackboxes=0 scope=full_PS_DMA_PL period_ns=10 wns_ns=$slack whs_ns=$hold_slack"
 puts $fp "estimated_fmax_mhz=[expr {1000.0/(10.0-$slack)}]"
 puts $fp "board=AX7020 part=xc7z020clg400-2 vivado=[version -short]"
-puts $fp "bitstream_generated=true xsa_generated=true board_tested=false"
+puts $fp "timing_pass=true whs_ns=$hold_slack delivery_exported=false board_tested=false"
 close $fp
 if {$slack < 0} {error "Routed setup timing failed: $slack"}
 if {$hold_slack < 0} {error "Routed hold timing failed: $hold_slack"}
@@ -132,4 +133,7 @@ foreach hwh [glob -nocomplain $work/john_ax7020_sha512crypt4.srcs/sources_1/bd/s
     file copy -force $hwh $root/deliverables/john_ax7020_sha512crypt4.hwh
 }
 write_hw_platform -fixed -include_bit -force $root/deliverables/john_ax7020_sha512crypt4.xsa
+set fp [open $out/status.txt a]
+puts $fp "bitstream_generated=true xsa_generated=true delivery_exported=true board_tested=false"
+close $fp
 puts "SHA512CRYPT_SOC_COMPLETE wns_ns=$slack"

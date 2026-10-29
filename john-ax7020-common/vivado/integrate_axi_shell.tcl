@@ -5,6 +5,11 @@ add_files -norecurse $common/rtl/john_axi_shell_bd.v
 update_compile_order -fileset sources_1
 set shell [create_bd_cell -type module -reference john_axi_shell_bd unified]
 set_property CONFIG.ALGORITHM $algorithm_id $shell
+set result_slice [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_register_slice:1.1 result_slice]
+set_property -dict [list CONFIG.TDATA_NUM_BYTES {4} CONFIG.HAS_TKEEP {1} CONFIG.HAS_TLAST {1} CONFIG.REG_CONFIG {8}] $result_slice
+connect_bd_net [get_bd_pins ps7_0/FCLK_CLK0] [get_bd_pins result_slice/aclk]
+connect_bd_net [get_bd_pins reset/peripheral_aresetn] [get_bd_pins result_slice/aresetn]
+connect_bd_intf_net [get_bd_intf_pins result_slice/M_AXIS] [get_bd_intf_pins unified/NATIVE_RX]
 set_property CONFIG.NUM_MI 3 $control
 connect_bd_net [get_bd_pins ps7_0/FCLK_CLK0] [get_bd_pins unified/aclk] [get_bd_pins control/M02_ACLK]
 connect_bd_net [get_bd_pins reset/peripheral_aresetn] [get_bd_pins unified/aresetn] [get_bd_pins control/M02_ARESETN]

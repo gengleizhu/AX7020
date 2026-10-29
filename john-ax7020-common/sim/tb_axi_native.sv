@@ -21,6 +21,14 @@ module tb_axi_native;
  wire [31:0] native_rx_tdata;wire [3:0] native_rx_tkeep;wire native_rx_tlast,native_rx_tvalid;
  wire native_rx_tready;wire [31:0] native_status;wire native_initialized;
  john_axi_shell #(.ALGORITHM(ALG)) dut(.*);
+ wire [31:0] core_rx_tdata;
+ wire [3:0] core_rx_tkeep;
+ wire core_rx_tlast,core_rx_tvalid,core_rx_tready;
+ john_result_slice slice_i(.aclk(aclk),.aresetn(aresetn),
+  .s_axis_tdata(core_rx_tdata),.s_axis_tkeep(core_rx_tkeep),
+  .s_axis_tlast(core_rx_tlast),.s_axis_tvalid(core_rx_tvalid),.s_axis_tready(core_rx_tready),
+  .m_axis_tdata(native_rx_tdata),.m_axis_tkeep(native_rx_tkeep),
+  .m_axis_tlast(native_rx_tlast),.m_axis_tvalid(native_rx_tvalid),.m_axis_tready(native_rx_tready));
  task wr(input [15:0] a,input [31:0] d,input bit reverse_order,input [1:0] expected);
  begin
   @(negedge aclk);s_axi_awaddr=a;s_axi_wdata=d;
@@ -53,11 +61,11 @@ module tb_axi_native;
 
  generate
  if(ALG==3)begin: md5
- md5crypt8_axis_top core(.aclk(aclk),.aresetn(aresetn),.s_axis_tdata(native_tx_tdata),.s_axis_tkeep(native_tx_tkeep),.s_axis_tlast(native_tx_tlast),.s_axis_tvalid(native_tx_tvalid),.s_axis_tready(native_tx_tready),.m_axis_tdata(native_rx_tdata),.m_axis_tkeep(native_rx_tkeep),.m_axis_tlast(native_rx_tlast),.m_axis_tvalid(native_rx_tvalid),.m_axis_tready(native_rx_tready),.status(native_status),.initialized(native_initialized));
+ md5crypt8_axis_top core(.aclk(aclk),.aresetn(aresetn),.s_axis_tdata(native_tx_tdata),.s_axis_tkeep(native_tx_tkeep),.s_axis_tlast(native_tx_tlast),.s_axis_tvalid(native_tx_tvalid),.s_axis_tready(native_tx_tready),.m_axis_tdata(core_rx_tdata),.m_axis_tkeep(core_rx_tkeep),.m_axis_tlast(core_rx_tlast),.m_axis_tvalid(core_rx_tvalid),.m_axis_tready(core_rx_tready),.status(native_status),.initialized(native_initialized));
  end else if(ALG==4)begin: sha256
- sha256crypt8_axis_top core(.aclk(aclk),.aresetn(aresetn),.s_axis_tdata(native_tx_tdata),.s_axis_tkeep(native_tx_tkeep),.s_axis_tlast(native_tx_tlast),.s_axis_tvalid(native_tx_tvalid),.s_axis_tready(native_tx_tready),.m_axis_tdata(native_rx_tdata),.m_axis_tkeep(native_rx_tkeep),.m_axis_tlast(native_rx_tlast),.m_axis_tvalid(native_rx_tvalid),.m_axis_tready(native_rx_tready),.status(native_status),.initialized(native_initialized));
+ sha256crypt8_axis_top core(.aclk(aclk),.aresetn(aresetn),.s_axis_tdata(native_tx_tdata),.s_axis_tkeep(native_tx_tkeep),.s_axis_tlast(native_tx_tlast),.s_axis_tvalid(native_tx_tvalid),.s_axis_tready(native_tx_tready),.m_axis_tdata(core_rx_tdata),.m_axis_tkeep(core_rx_tkeep),.m_axis_tlast(core_rx_tlast),.m_axis_tvalid(core_rx_tvalid),.m_axis_tready(core_rx_tready),.status(native_status),.initialized(native_initialized));
  end else begin: sha512
- sha512crypt4_axis_top core(.aclk(aclk),.aresetn(aresetn),.s_axis_tdata(native_tx_tdata),.s_axis_tkeep(native_tx_tkeep),.s_axis_tlast(native_tx_tlast),.s_axis_tvalid(native_tx_tvalid),.s_axis_tready(native_tx_tready),.m_axis_tdata(native_rx_tdata),.m_axis_tkeep(native_rx_tkeep),.m_axis_tlast(native_rx_tlast),.m_axis_tvalid(native_rx_tvalid),.m_axis_tready(native_rx_tready),.status(native_status),.initialized(native_initialized));
+ sha512crypt4_axis_top core(.aclk(aclk),.aresetn(aresetn),.s_axis_tdata(native_tx_tdata),.s_axis_tkeep(native_tx_tkeep),.s_axis_tlast(native_tx_tlast),.s_axis_tvalid(native_tx_tvalid),.s_axis_tready(native_tx_tready),.m_axis_tdata(core_rx_tdata),.m_axis_tkeep(core_rx_tkeep),.m_axis_tlast(core_rx_tlast),.m_axis_tvalid(core_rx_tvalid),.m_axis_tready(core_rx_tready),.status(native_status),.initialized(native_initialized));
  end
  endgenerate
  localparam DW=ALG==3?4:ALG==4?8:16;
@@ -123,4 +131,3 @@ module tb_axi_native;
   $display("AXI_NATIVE_PASS ALG=%0d",ALG);$finish;
  end
 endmodule
-

@@ -72,6 +72,8 @@ module john_axi_shell #(
  reg snapshot_valid,reload,initialized,input_complete,compute_done,output_complete;
  reg [4:0] header_pos;
  reg [31:0] input_count,result_count,tx_count;
+ // A bcrypt result is exactly twelve 32-bit beats. Advance only on handshake.
+ reg [3:0] bcrypt_result_word;
  reg [31:0] batch_us,quiet_us;
  reg [31:0] micro_div;
  reg [63:0] uptime,elapsed,input_bytes,output_bytes,starve,stall,active,error_time;
@@ -226,7 +228,7 @@ module john_axi_shell #(
    first_error<=0;error_detail<=0;bad_offset<=0;bus_errors<=0;rejected<=0;successes<=0;failures<=0;
    snap_seq<=0;snapshot_valid<=0;irq_status<=0;irq_enable<=0;warnings<=0;
    input_complete<=0;compute_done<=0;output_complete<=0;header_pos<=0;
-   input_count<=0;result_count<=0;tx_count<=0;batch_us<=0;quiet_us<=0;micro_div<=0;
+   input_count<=0;result_count<=0;tx_count<=0;bcrypt_result_word<=0;batch_us<=0;quiet_us<=0;micro_div<=0;
    uptime<=0;elapsed<=0;input_bytes<=0;output_bytes<=0;starve<=0;stall<=0;active<=0;error_time<=0;
    out_valid<=0;ram_wait<=0;out_word<=0;result_read<=0;
    for(i=0;i<18;i=i+1)desc[i]<=0;
@@ -264,7 +266,7 @@ module john_axi_shell #(
      end
      2:if((state==DONE || state==ERROR) && !reload)begin
       state<=IDLE;first_error<=0;error_detail<=0;input_complete<=0;compute_done<=0;output_complete<=0;
-      input_count<=0;result_count<=0;tx_count<=0;batch_us<=0;quiet_us<=0;
+      input_count<=0;result_count<=0;tx_count<=0;bcrypt_result_word<=0;batch_us<=0;quiet_us<=0;
       elapsed<=0;input_bytes<=0;output_bytes<=0;starve<=0;stall<=0;active<=0;drain_timeout<=0;
      end else begin cmd_result<=1;rejected<=rejected+1;end
      4:begin
@@ -310,8 +312,9 @@ module john_axi_shell #(
     end
    end
    if(nr_fire)begin
+    if(ALGORITHM==1)bcrypt_result_word<=bcrypt_result_word==11?0:bcrypt_result_word+1'b1;
     results[result_count>>2]<=native_rx_tdata;result_count<=result_count+4;
-    if(native_rx_tkeep!=15 || (ALGORITHM==1?(native_rx_tlast!=((result_count%48)==44)):
+    if(native_rx_tkeep!=15 || (ALGORITHM==1?(native_rx_tlast!=(bcrypt_result_word==11)):
        (native_rx_tlast!=(result_count+4==desc[10]))) ||
        (ALGORITHM!=1 && ((result_count==0 && native_rx_tdata!=OUT_MAGIC) || (result_count==4 && native_rx_tdata!=desc[3]))))fail(15,result_count>>2);
    end
