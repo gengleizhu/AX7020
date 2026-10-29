@@ -54,10 +54,12 @@ connect_bd_intf_net [get_bd_intf_pins control/M01_AXI] [get_bd_intf_pins status/
 connect_bd_intf_net [get_bd_intf_pins dma/M_AXI_MM2S] [get_bd_intf_pins memory/S00_AXI]
 connect_bd_intf_net [get_bd_intf_pins dma/M_AXI_S2MM] [get_bd_intf_pins memory/S01_AXI]
 connect_bd_intf_net [get_bd_intf_pins memory/M00_AXI] [get_bd_intf_pins ps7_0/S_AXI_HP0]
-make_bd_intf_pins_external [get_bd_intf_pins dma/M_AXIS_MM2S]
-set_property name to_pl [get_bd_intf_ports M_AXIS_MM2S_0]
-make_bd_intf_pins_external [get_bd_intf_pins dma/S_AXIS_S2MM]
-set_property name from_pl [get_bd_intf_ports S_AXIS_S2MM_0]
+set algorithm_id 2
+source [file join $root .. john-ax7020-common vivado integrate_axi_shell.tcl]
+make_bd_intf_pins_external [get_bd_intf_pins unified/NATIVE_TX]
+set_property name to_pl [get_bd_intf_ports NATIVE_TX_0]
+make_bd_intf_pins_external [get_bd_intf_pins unified/NATIVE_RX]
+set_property name from_pl [get_bd_intf_ports NATIVE_RX_0]
 set_property CONFIG.FREQ_HZ 100000000 [get_bd_intf_ports from_pl]
 create_bd_port -dir O -type clk clk100
 set_property CONFIG.ASSOCIATED_BUSIF {to_pl:from_pl} [get_bd_ports clk100]
@@ -68,7 +70,10 @@ set_property CONFIG.POLARITY ACTIVE_LOW [get_bd_ports resetn]
 connect_bd_net [get_bd_pins reset/peripheral_aresetn] [get_bd_ports resetn]
 create_bd_port -dir I -from 31 -to 0 compute_status
 connect_bd_net [get_bd_ports compute_status] [get_bd_pins status/gpio_io_i]
+connect_bd_net [get_bd_ports compute_status] [get_bd_pins unified/native_status]
 assign_bd_address
+assign_bd_address -offset 0x40400000 -range 0x10000 -target_address_space [get_bd_addr_spaces ps7_0/Data] [get_bd_addr_segs dma/S_AXI_LITE/Reg] -force
+assign_bd_address -offset 0x41200000 -range 0x10000 -target_address_space [get_bd_addr_spaces ps7_0/Data] [get_bd_addr_segs status/S_AXI/Reg] -force
 validate_bd_design
 if {[get_property CONFIG.C_EXT_RESET_HIGH $rst] != 0} {error "PS reset polarity mismatch"}
 save_bd_design

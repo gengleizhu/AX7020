@@ -1,5 +1,9 @@
 # 调用者定义root；仅加入可综合设计，不包含阶段1的FIFO行为模型。
 set original [file join $root rtl john_original]
+# Explicit header membership avoids Vivado 2020.1 module-reference HDDA crash.
+foreach d [list $original $original/bcrypt $original/bcrypt/bcrypt_core $original/pkt_comm $original/util] {
+ foreach h [glob -nocomplain $d/*.vh] {add_files -norecurse $h}
+}
 set globals [file join $root rtl stage1 globals.vh]
 add_files -norecurse $globals
 set_property is_global_include true [get_files $globals]

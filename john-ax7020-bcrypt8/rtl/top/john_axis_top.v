@@ -10,7 +10,7 @@ module john_axis_top #(parameter CORES=1)(
  input [31:0] s_axis_tdata,input [3:0] s_axis_tkeep,input s_axis_tlast,input s_axis_tvalid,
  output s_axis_tready,
  output [31:0] m_axis_tdata,output [3:0] m_axis_tkeep,output m_axis_tlast,output m_axis_tvalid,
- input m_axis_tready,output [31:0] status);
+ input m_axis_tready,output [31:0] status,output initialized);
  wire [7:0] din,core_din,app_status,pkt_status;
  wire valid,blocked,in_error,out_error,error_r;
  wire [1:0] ctrl;
@@ -21,6 +21,7 @@ module john_axis_top #(parameter CORES=1)(
    if(s_axis_tvalid && s_axis_tready) started<=1;
    if(!aresetn && started) reset_fault<=1;
  end
+ assign initialized=ci;
  wire run_enable=aresetn && !reset_fault;
  assign status={8'hbc,4'b0,reset_fault,out_error,in_error,error_r,app_status,pkt_status};
  axis_to_john_pktcomm input_adapter(aclk,run_enable,s_axis_tdata,s_axis_tkeep,

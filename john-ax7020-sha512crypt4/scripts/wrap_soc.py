@@ -19,11 +19,11 @@ result += """sha512crypt4_axis_top compute(
  .s_axis_tdata(to_pl_tdata),.s_axis_tkeep(to_pl_tkeep),.s_axis_tlast(to_pl_tlast),
  .s_axis_tvalid(to_pl_tvalid),.s_axis_tready(to_pl_tready),
  .m_axis_tdata(from_pl_tdata),.m_axis_tkeep(from_pl_tkeep),.m_axis_tlast(from_pl_tlast),
- .m_axis_tvalid(from_pl_tvalid),.m_axis_tready(from_pl_tready),.status(compute_status));
+ .m_axis_tvalid(from_pl_tvalid),.m_axis_tready(from_pl_tready),.status(compute_status),.initialized(compute_initialized));
 endmodule
 """
 names = {n for _,_,n in internal}
-assert names == {"clk100", "resetn", "compute_status"} | {
+assert names == {"clk100", "resetn", "compute_status", "compute_initialized"} | {
     p+"_"+s for p in ("to_pl","from_pl") for s in ("tdata","tkeep","tlast","tvalid","tready")
 }, names
 target.write_text(result)

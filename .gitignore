@@ -22,6 +22,8 @@
 **/*.wdb
 **/*.vcd
 **/*.exe
+**/xsim.dir/
+**/*.pb
 **/~$*
 # Upstream runtime dictionaries and unrelated board bitstreams are not build inputs.
 **/third_party/john/run/*.chr

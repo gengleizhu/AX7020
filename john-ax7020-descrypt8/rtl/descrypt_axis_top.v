@@ -8,7 +8,7 @@ module descrypt_axis_top(
  input s_axis_tlast, s_axis_tvalid, output s_axis_tready,
  output reg [31:0] m_axis_tdata, output [3:0] m_axis_tkeep,
  output m_axis_tlast, m_axis_tvalid, input m_axis_tready,
- output [31:0] status
+ output [31:0] status,output initialized
 );
  localparam RX=0, CONFIG=1, HASH=2, GAP=3, KEYS=4, META=5, WAIT_RESULT=6, TX=7;
  reg [3:0] state=RX;
@@ -36,6 +36,7 @@ module descrypt_axis_top(
  wire [55:0] key_pc1;
  crypt3_ascii2bin convert(ascii7,key_bits);
  pc1 permute(key_bits,key_pc1);
+ assign initialized=core_idle;
  wire fault=reset_fault|protocol_error|timeout_error|core_error|cmp_error;
  assign status={8'hDC,15'b0,timeout_error,3'b0,cmp_error,core_error,protocol_error,reset_fault,(state!=RX)};
  assign s_axis_tready=aresetn && !fault && state==RX;

@@ -7,7 +7,7 @@ module md5crypt8_axis_top(
  input s_axis_tlast,s_axis_tvalid,output s_axis_tready,
  output reg [31:0] m_axis_tdata,output [3:0] m_axis_tkeep,
  output m_axis_tlast,output reg m_axis_tvalid,input m_axis_tready,
- output [31:0] status
+ output [31:0] status,output initialized
 );
  localparam HEADER=0,TAG=1,FEED=2,OUT_HEADER=3,OUT_TAG=4,OUT_ID=5,GATHER=6;
  reg [2:0] state=HEADER,worker=0;
@@ -18,6 +18,8 @@ module md5crypt8_axis_top(
  wire [7:0] ir,ov,ol;
  wire [31:0] od[0:7],ws[0:7];
  wire [7:0] errors,busy;
+ wire [7:0] init;
+ assign initialized=&init;
  wire fault=protocol_error|reset_fault|(|errors);
  genvar i;
  generate for(i=0;i<8;i=i+1) begin: workers
@@ -28,7 +30,7 @@ module md5crypt8_axis_top(
     .s_axis_tlast(pos==311),.s_axis_tvalid(s_axis_tvalid && state==FEED && worker==i && !fault),
     .s_axis_tready(ir[i]),.m_axis_tdata(od[i]),.m_axis_tkeep(),.m_axis_tlast(ol[i]),
     .m_axis_tvalid(ov[i]),.m_axis_tready(m_axis_tready && state==GATHER && worker==i && !fault),
-    .status(ws[i]));
+    .status(ws[i]),.initialized(init[i]));
  end endgenerate
  assign status={8'hA8,errors,busy,5'b0,protocol_error,reset_fault,(state!=HEADER)};
  assign s_axis_tready=aresetn && !fault && ((state==HEADER || state==TAG) || (state==FEED && ir[worker]));

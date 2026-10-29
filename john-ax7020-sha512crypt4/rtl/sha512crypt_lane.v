@@ -6,7 +6,7 @@ module sha512crypt_lane #(
  input aclk,aresetn,input [31:0] s_axis_tdata,input [3:0] s_axis_tkeep,
  input s_axis_tlast,s_axis_tvalid,output s_axis_tready,
  output [31:0] m_axis_tdata,output [3:0] m_axis_tkeep,
- output m_axis_tlast,m_axis_tvalid,input m_axis_tready,output [31:0] status
+ output m_axis_tlast,m_axis_tvalid,input m_axis_tready,output [31:0] status,output initialized
 );
  localparam RX=0,START=1,SEND=2,WAIT_ALL=4,TX=5;
  reg [2:0] state=RX;
@@ -24,6 +24,7 @@ module sha512crypt_lane #(
  reg [1:0] collect=0;
  wire ready,afull,empty;
  wire [1:0] unit_out;
+ assign initialized=ready;
  wire fault=reset_fault|protocol_error|timeout_error;
  wire unit_wr=aresetn && !fault && !afull &&
        ((state==START && ready) || state==SEND);
