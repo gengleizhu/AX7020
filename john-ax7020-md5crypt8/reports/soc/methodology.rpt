@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.1 (win64) Build 2902540 Wed May 27 19:54:49 MDT 2020
-| Date         : Wed Oct 28 15:04:25 2026
+| Date         : Thu Oct 29 15:34:29 2026
 | Host         : PC-20260721WOKF running 64-bit major release  (build 9200)
 | Command      : report_methodology -file E:/zhugenglei.work/john/john-ax7020-md5crypt8/reports/soc/methodology.rpt
 | Design       : john_soc_top
@@ -94,47 +94,47 @@ Related violations: <none>
 
 SYNTH-6#1 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[4].lane/results_reg_0, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[0].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#2 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[4].lane/results_reg_1, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[1].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#3 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[4].lane/results_reg_2, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[2].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#4 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[5].lane/results_reg_2, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[3].lane/results_reg_0, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#5 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[6].lane/results_reg_0, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[3].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#6 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[6].lane/results_reg_1, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[4].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#7 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[6].lane/results_reg_2, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[5].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#8 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[7].lane/results_reg_0, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[6].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#9 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/workers[7].lane/results_reg_1, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/workers[7].lane/words_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-16#1 Warning
@@ -299,7 +299,7 @@ Related violations: <none>
 
 ULMTCS-1#1 Warning
 Control Sets use limits recommend reduction  
-This design uses 1108 control sets (vs. available limit of 13300, determined by 1 control set per CLB). This exceeds the control set use guideline of 7.5 percent. This is at a level where reduction is RECOMMENDED (see UG949). Use report_control_sets to get more details.
+This design uses 1159 control sets (vs. available limit of 13300, determined by 1 control set per CLB). This exceeds the control set use guideline of 7.5 percent. This is at a level where reduction is RECOMMENDED (see UG949). Use report_control_sets to get more details.
 Related violations: <none>
 
 

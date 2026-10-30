@@ -1,4 +1,5 @@
-units=8 md5cores=24 candidate_slots=96 blackboxes=0 scope=full_PS_DMA_PL period_ns=10 wns_ns=1.322 whs_ns=0.036
-estimated_fmax_mhz=115.23392486748098
+units=8 md5cores=24 candidate_slots=96 blackboxes=0 scope=full_PS_DMA_PL period_ns=10 wns_ns=0.506 whs_ns=0.036
+estimated_fmax_mhz=105.32968190436065
 board=AX7020 part=xc7z020clg400-2 vivado=2020.1
-bitstream_generated=true xsa_generated=true board_tested=false
+timing_pass=true whs_ns=0.036 delivery_exported=false board_tested=false
+bitstream_generated=true xsa_generated=true delivery_exported=true board_tested=false

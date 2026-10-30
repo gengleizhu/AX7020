@@ -1,8 +1,22 @@
 # Called after DMA/interconnect creation and before native stream export.
 set common [file normalize [file join $root .. john-ax7020-common]]
+source $common/vivado/integrate_dma_irq.tcl
+add_files -norecurse $common/rtl/john_startup_reset.v
 add_files -norecurse $common/rtl/john_axi_shell.sv
 add_files -norecurse $common/rtl/john_axi_shell_bd.v
 update_compile_order -fileset sources_1
+
+# A bitstream can be loaded while FCLK_RESET0_N is already inactive.  In that
+# case proc_sys_reset does not necessarily observe an assertion edge, leaving
+# AXI slaves unable to acknowledge the first PS access. Force one synchronous
+# reset pulse after every PL configuration. Vivado propagates the active-low
+# polarity to AUX (C_AUX_RESET_HIGH=0), so the helper output is named resetn.
+set startup_reset [create_bd_cell -type module -reference john_startup_reset startup_reset]
+set aux_reset_net [get_bd_nets -of_objects [get_bd_pins reset/aux_reset_in]]
+disconnect_bd_net -net $aux_reset_net -objects [get_bd_pins reset/aux_reset_in]
+connect_bd_net [get_bd_pins ps7_0/FCLK_CLK0] [get_bd_pins ${startup_reset}/clk]
+connect_bd_net [get_bd_pins ${startup_reset}/resetn] [get_bd_pins reset/aux_reset_in]
+
 set shell [create_bd_cell -type module -reference john_axi_shell_bd unified]
 set_property CONFIG.ALGORITHM $algorithm_id $shell
 set result_slice [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_register_slice:1.1 result_slice]

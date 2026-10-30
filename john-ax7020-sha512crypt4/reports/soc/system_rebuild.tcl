@@ -37,6 +37,13 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 # To test this script, run the following commands from Vivado Tcl console:
 # source system_script.tcl
 
+
+# The design that will be created by this Tcl script contains the following 
+# module references:
+# john_axi_shell_bd
+
+# Please add the sources of those modules before sourcing this Tcl script.
+
 # If there is no project opened, this script will create a
 # project, but make sure you do not have an existing project
 # <./myproj/project_1.xpr> in the current working folder.
@@ -124,9 +131,11 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
 xilinx.com:ip:axi_dma:7.1\
+xilinx.com:ip:xlconcat:2.1\
 xilinx.com:ip:xlconstant:1.1\
 xilinx.com:ip:processing_system7:5.5\
 xilinx.com:ip:proc_sys_reset:5.0\
+xilinx.com:ip:axis_register_slice:1.1\
 xilinx.com:ip:axi_gpio:2.0\
 "
 
@@ -145,6 +154,31 @@ xilinx.com:ip:axi_gpio:2.0\
       set bCheckIPsPassed 0
    }
 
+}
+
+##################################################################
+# CHECK Modules
+##################################################################
+set bCheckModules 1
+if { $bCheckModules == 1 } {
+   set list_check_mods "\ 
+john_axi_shell_bd\
+"
+
+   set list_mods_missing ""
+   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
+
+   foreach mod_vlnv $list_check_mods {
+      if { [can_resolve_reference $mod_vlnv] == 0 } {
+         lappend list_mods_missing $mod_vlnv
+      }
+   }
+
+   if { $list_mods_missing ne "" } {
+      catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
+      common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
+      set bCheckIPsPassed 0
+   }
 }
 
 if { $bCheckIPsPassed != 1 } {
@@ -221,13 +255,14 @@ proc create_root_design { parentCell } {
    CONFIG.ASSOCIATED_BUSIF {to_pl:from_pl} \
    CONFIG.FREQ_HZ {100000000} \
  ] $clk100
+  set compute_initialized [ create_bd_port -dir I compute_initialized ]
   set compute_status [ create_bd_port -dir I -from 31 -to 0 compute_status ]
   set resetn [ create_bd_port -dir O -from 0 -to 0 -type rst resetn ]
 
   # Create instance: control, and set properties
   set control [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 control ]
   set_property -dict [ list \
-   CONFIG.NUM_MI {2} \
+   CONFIG.NUM_MI {3} \
  ] $control
 
   # Create instance: dma, and set properties
@@ -241,6 +276,22 @@ proc create_root_design { parentCell } {
    CONFIG.c_m_axis_mm2s_tdata_width {32} \
    CONFIG.c_sg_length_width {23} \
  ] $dma
+
+  # Create instance: dma_irq_concat, and set properties
+  set dma_irq_concat [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 dma_irq_concat ]
+  set_property -dict [ list \
+   CONFIG.IN0_WIDTH {1} \
+   CONFIG.IN1_WIDTH {1} \
+   CONFIG.IN2_WIDTH {14} \
+   CONFIG.NUM_PORTS {3} \
+ ] $dma_irq_concat
+
+  # Create instance: dma_irq_zero, and set properties
+  set dma_irq_zero [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 dma_irq_zero ]
+  set_property -dict [ list \
+   CONFIG.CONST_VAL {0} \
+   CONFIG.CONST_WIDTH {14} \
+ ] $dma_irq_zero
 
   # Create instance: memory, and set properties
   set memory [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 memory ]
@@ -955,7 +1006,7 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_USE_DMA2 {0} \
    CONFIG.PCW_USE_DMA3 {0} \
    CONFIG.PCW_USE_EXPANDED_IOP {0} \
-   CONFIG.PCW_USE_FABRIC_INTERRUPT {0} \
+   CONFIG.PCW_USE_FABRIC_INTERRUPT {1} \
    CONFIG.PCW_USE_HIGH_OCM {0} \
    CONFIG.PCW_USE_M_AXI_GP0 {1} \
    CONFIG.PCW_USE_M_AXI_GP1 {0} \
@@ -979,12 +1030,35 @@ proc create_root_design { parentCell } {
   # Create instance: reset, and set properties
   set reset [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 reset ]
 
+  # Create instance: result_slice, and set properties
+  set result_slice [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_register_slice:1.1 result_slice ]
+  set_property -dict [ list \
+   CONFIG.HAS_TKEEP {1} \
+   CONFIG.HAS_TLAST {1} \
+   CONFIG.REG_CONFIG {8} \
+   CONFIG.TDATA_NUM_BYTES {4} \
+ ] $result_slice
+
   # Create instance: status, and set properties
   set status [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 status ]
   set_property -dict [ list \
    CONFIG.C_ALL_INPUTS {1} \
    CONFIG.C_GPIO_WIDTH {32} \
  ] $status
+
+  # Create instance: unified, and set properties
+  set block_name john_axi_shell_bd
+  set block_cell_name unified
+  if { [catch {set unified [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $unified eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+    set_property -dict [ list \
+   CONFIG.ALGORITHM {5} \
+ ] $unified
 
   # Create instance: zero, and set properties
   set zero [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 zero ]
@@ -993,31 +1067,43 @@ proc create_root_design { parentCell } {
  ] $zero
 
   # Create interface connections
-  connect_bd_intf_net -intf_net S_AXIS_S2MM_0_1 [get_bd_intf_ports from_pl] [get_bd_intf_pins dma/S_AXIS_S2MM]
+  connect_bd_intf_net -intf_net S_AXIS_0_1 [get_bd_intf_ports from_pl] [get_bd_intf_pins result_slice/S_AXIS]
   connect_bd_intf_net -intf_net control_M00_AXI [get_bd_intf_pins control/M00_AXI] [get_bd_intf_pins dma/S_AXI_LITE]
   connect_bd_intf_net -intf_net control_M01_AXI [get_bd_intf_pins control/M01_AXI] [get_bd_intf_pins status/S_AXI]
-  connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_ports to_pl] [get_bd_intf_pins dma/M_AXIS_MM2S]
+  connect_bd_intf_net -intf_net control_M02_AXI [get_bd_intf_pins control/M02_AXI] [get_bd_intf_pins unified/S_AXI]
+  connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_pins dma/M_AXIS_MM2S] [get_bd_intf_pins unified/S_AXIS]
   connect_bd_intf_net -intf_net dma_M_AXI_MM2S [get_bd_intf_pins dma/M_AXI_MM2S] [get_bd_intf_pins memory/S00_AXI]
   connect_bd_intf_net -intf_net dma_M_AXI_S2MM [get_bd_intf_pins dma/M_AXI_S2MM] [get_bd_intf_pins memory/S01_AXI]
   connect_bd_intf_net -intf_net memory_M00_AXI [get_bd_intf_pins memory/M00_AXI] [get_bd_intf_pins ps7_0/S_AXI_HP0]
   connect_bd_intf_net -intf_net ps7_0_DDR [get_bd_intf_ports DDR_0] [get_bd_intf_pins ps7_0/DDR]
   connect_bd_intf_net -intf_net ps7_0_FIXED_IO [get_bd_intf_ports FIXED_IO_0] [get_bd_intf_pins ps7_0/FIXED_IO]
   connect_bd_intf_net -intf_net ps7_0_M_AXI_GP0 [get_bd_intf_pins control/S00_AXI] [get_bd_intf_pins ps7_0/M_AXI_GP0]
+  connect_bd_intf_net -intf_net result_slice_M_AXIS [get_bd_intf_pins result_slice/M_AXIS] [get_bd_intf_pins unified/NATIVE_RX]
+  connect_bd_intf_net -intf_net unified_M_AXIS [get_bd_intf_pins dma/S_AXIS_S2MM] [get_bd_intf_pins unified/M_AXIS]
+  connect_bd_intf_net -intf_net unified_NATIVE_TX [get_bd_intf_ports to_pl] [get_bd_intf_pins unified/NATIVE_TX]
 
   # Create port connections
-  connect_bd_net -net compute_status_1 [get_bd_ports compute_status] [get_bd_pins status/gpio_io_i]
+  connect_bd_net -net compute_initialized_1 [get_bd_ports compute_initialized] [get_bd_pins unified/native_initialized]
+  connect_bd_net -net compute_status_1 [get_bd_ports compute_status] [get_bd_pins status/gpio_io_i] [get_bd_pins unified/native_status]
+  connect_bd_net -net dma_irq_concat_dout [get_bd_pins dma_irq_concat/dout] [get_bd_pins ps7_0/IRQ_F2P]
+  connect_bd_net -net dma_irq_zero_dout [get_bd_pins dma_irq_concat/In2] [get_bd_pins dma_irq_zero/dout]
+  connect_bd_net -net dma_mm2s_introut [get_bd_pins dma/mm2s_introut] [get_bd_pins dma_irq_concat/In0]
+  connect_bd_net -net dma_s2mm_introut [get_bd_pins dma/s2mm_introut] [get_bd_pins dma_irq_concat/In1]
   connect_bd_net -net one_dout [get_bd_pins one/dout] [get_bd_pins reset/dcm_locked]
-  connect_bd_net -net ps7_0_FCLK_CLK0 [get_bd_ports clk100] [get_bd_pins control/ACLK] [get_bd_pins control/M00_ACLK] [get_bd_pins control/M01_ACLK] [get_bd_pins control/S00_ACLK] [get_bd_pins dma/m_axi_mm2s_aclk] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins dma/s_axi_lite_aclk] [get_bd_pins memory/ACLK] [get_bd_pins memory/M00_ACLK] [get_bd_pins memory/S00_ACLK] [get_bd_pins memory/S01_ACLK] [get_bd_pins ps7_0/FCLK_CLK0] [get_bd_pins ps7_0/M_AXI_GP0_ACLK] [get_bd_pins ps7_0/S_AXI_HP0_ACLK] [get_bd_pins reset/slowest_sync_clk] [get_bd_pins status/s_axi_aclk]
+  connect_bd_net -net ps7_0_FCLK_CLK0 [get_bd_ports clk100] [get_bd_pins control/ACLK] [get_bd_pins control/M00_ACLK] [get_bd_pins control/M01_ACLK] [get_bd_pins control/M02_ACLK] [get_bd_pins control/S00_ACLK] [get_bd_pins dma/m_axi_mm2s_aclk] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins dma/s_axi_lite_aclk] [get_bd_pins memory/ACLK] [get_bd_pins memory/M00_ACLK] [get_bd_pins memory/S00_ACLK] [get_bd_pins memory/S01_ACLK] [get_bd_pins ps7_0/FCLK_CLK0] [get_bd_pins ps7_0/M_AXI_GP0_ACLK] [get_bd_pins ps7_0/S_AXI_HP0_ACLK] [get_bd_pins reset/slowest_sync_clk] [get_bd_pins result_slice/aclk] [get_bd_pins status/s_axi_aclk] [get_bd_pins unified/aclk]
   connect_bd_net -net ps7_0_FCLK_RESET0_N [get_bd_pins ps7_0/FCLK_RESET0_N] [get_bd_pins reset/ext_reset_in]
   connect_bd_net -net reset_interconnect_aresetn [get_bd_pins control/ARESETN] [get_bd_pins memory/ARESETN] [get_bd_pins reset/interconnect_aresetn]
-  connect_bd_net -net reset_peripheral_aresetn [get_bd_ports resetn] [get_bd_pins control/M00_ARESETN] [get_bd_pins control/M01_ARESETN] [get_bd_pins control/S00_ARESETN] [get_bd_pins dma/axi_resetn] [get_bd_pins memory/M00_ARESETN] [get_bd_pins memory/S00_ARESETN] [get_bd_pins memory/S01_ARESETN] [get_bd_pins reset/peripheral_aresetn] [get_bd_pins status/s_axi_aresetn]
+  connect_bd_net -net reset_peripheral_aresetn [get_bd_ports resetn] [get_bd_pins control/M00_ARESETN] [get_bd_pins control/M01_ARESETN] [get_bd_pins control/M02_ARESETN] [get_bd_pins control/S00_ARESETN] [get_bd_pins dma/axi_resetn] [get_bd_pins memory/M00_ARESETN] [get_bd_pins memory/S00_ARESETN] [get_bd_pins memory/S01_ARESETN] [get_bd_pins reset/peripheral_aresetn] [get_bd_pins result_slice/aresetn] [get_bd_pins status/s_axi_aresetn] [get_bd_pins unified/aresetn]
   connect_bd_net -net zero_dout [get_bd_pins reset/aux_reset_in] [get_bd_pins reset/mb_debug_sys_rst] [get_bd_pins zero/dout]
 
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x40000000 -target_address_space [get_bd_addr_spaces dma/Data_MM2S] [get_bd_addr_segs ps7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
   assign_bd_address -offset 0x00000000 -range 0x40000000 -target_address_space [get_bd_addr_spaces dma/Data_S2MM] [get_bd_addr_segs ps7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
   assign_bd_address -offset 0x40400000 -range 0x00010000 -target_address_space [get_bd_addr_spaces ps7_0/Data] [get_bd_addr_segs dma/S_AXI_LITE/Reg] -force
+  assign_bd_address -offset 0x40400000 -range 0x00010000 -target_address_space [get_bd_addr_spaces ps7_0/Data] [get_bd_addr_segs dma/S_AXI_LITE/Reg] -force
   assign_bd_address -offset 0x41200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces ps7_0/Data] [get_bd_addr_segs status/S_AXI/Reg] -force
+  assign_bd_address -offset 0x41200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces ps7_0/Data] [get_bd_addr_segs status/S_AXI/Reg] -force
+  assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces ps7_0/Data] [get_bd_addr_segs unified/S_AXI/reg0] -force
 
 
   # Restore current instance
