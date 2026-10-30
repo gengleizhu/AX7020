@@ -1,5 +1,15 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-10-30 16:20 Linux 常驻 UDP 节点实板进展（最新）
+
+当前开发分支为 `feature/linux-udp-node-v0.1`，基于已推送基线提交 `f731b25`。已新增算法无关的 Linux DMA 客户端驱动、C 版 AXI-Lite/DMA 用户态共享库、PetaLinux 配方、自启动脚本、UDP v1 服务和 Windows/Linux Python 客户端。
+
+新版 `image.ub`（SHA256 `533a6c12f149e0863a423436e3f8f99a42cb4fc5a4859de075ca05224959dcef`）已从 SD 启动。`john-node` 自动运行并监听 UDP 42000，识别当前 MD5-crypt Bitstream 为 8 算法单元、每单元 3 Core、100 MHz。Windows 已完成真实 UDP→Linux→AXI DMA→FPGA→DMA→UDP 闭环，单批 96/96 结果与软件参考值一致；100 个连续批次共 9600 个候选完成，末批 96/96 正确。乱序、重复、冲突重传和提前 COMMIT 故障注入也已通过。
+
+旧版 Python 直接 mmap 写 AXI-Lite 在描述符偏移 `0x100` 触发 `external abort`，现已改为常驻 C 共享库执行对齐 `volatile uint32_t` 访问。新版连续运行未再出现异常，两路 DMA 中断计数同步增长。详细记录：`john-ax7020-common/reports/linux_udp_node_validation_20261030.md`。
+
+当前未完成：其他四种算法逐一更换 Bitstream 的 Linux/UDP 闭环；UDP 窗口确认与批量流水优化；固定网络/认证/日志持久化；双节点注册、分发、掉线重分配和结果汇总；长期压力及断电恢复测试。不能把当前 MD5 单节点结果写成五算法或双节点验收完成。
+
 ## 2026-10-30 10:04 启动诊断实证（覆盖此前启动推断）
 
 重新放入启动文件后，串口已确认SD首分区找到boot.scr并加载11558416字节image.ub，FIT中内核/initramfs/DTB哈希通过，Linux5.4进入驱动初始化，但尚未出现登录界面。不能再称“SD中没有启动文件”，也不能称“Linux已完整启动”。

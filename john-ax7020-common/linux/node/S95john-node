@@ -1,0 +1,41 @@
+#!/bin/sh
+
+PIDFILE=/var/run/john-node.pid
+LOGFILE=/var/log/john-node.log
+
+case "$1" in
+  start)
+    [ -e /dev/john-dma ] || exit 0
+    [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && exit 0
+    echo "Starting john-node"
+    /usr/bin/python3 /usr/sbin/john-node --bind 0.0.0.0 --port 42000 \
+      >>"$LOGFILE" 2>&1 &
+    echo $! >"$PIDFILE"
+    ;;
+  stop)
+    echo "Stopping john-node"
+    if [ -f "$PIDFILE" ]; then
+      kill "$(cat "$PIDFILE")" 2>/dev/null || true
+      rm -f "$PIDFILE"
+    fi
+    ;;
+  restart)
+    "$0" stop
+    sleep 1
+    "$0" start
+    ;;
+  status)
+    if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+      echo "john-node is running"
+      exit 0
+    fi
+    echo "john-node is stopped"
+    exit 1
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
+
+exit 0
