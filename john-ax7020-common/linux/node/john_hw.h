@@ -11,6 +11,10 @@ struct john_hw_identity {
 	uint32_t clock_hz;
 	uint32_t capabilities;
 	uint32_t status;
+	uint32_t build_date;
+	uint32_t register_abi;
+	uint32_t stream_abi;
+	uint32_t native_status;
 };
 
 struct john_hw_metrics {
@@ -21,10 +25,19 @@ struct john_hw_metrics {
 	uint32_t status;
 };
 
+struct john_hw_dma_stats {
+	uint64_t tx_completions;
+	uint64_t rx_completions;
+	uint32_t running;
+	uint32_t reserved;
+};
+
 void *john_hw_open(const char *dma_path, char *error, size_t error_size);
 void john_hw_close(void *handle);
 int john_hw_identify(void *handle, struct john_hw_identity *identity,
 		     char *error, size_t error_size);
+int john_hw_dma_stats(void *handle, struct john_hw_dma_stats *stats,
+		      char *error, size_t error_size);
 int john_hw_run(void *handle, const void *request, uint32_t request_len,
 		void *response, uint32_t response_capacity,
 		uint32_t *response_len, uint32_t timeout_ms,

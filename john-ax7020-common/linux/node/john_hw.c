@@ -153,6 +153,32 @@ int john_hw_identify(void *handle, struct john_hw_identity *identity,
 	identity->clock_hz = REG32(hw, 0x05c);
 	identity->capabilities = REG32(hw, 0x030);
 	identity->status = REG32(hw, 0x084);
+	identity->build_date = REG32(hw, 0x010);
+	identity->register_abi = REG32(hw, 0x004);
+	identity->stream_abi = REG32(hw, 0x00c);
+	identity->native_status = REG32(hw, 0x070);
+	return 0;
+}
+
+int john_hw_dma_stats(void *handle, struct john_hw_dma_stats *stats,
+		      char *error, size_t error_size)
+{
+	struct john_hw *hw = handle;
+	struct john_dma_stats kernel_stats;
+
+	if (!hw || !stats) {
+		set_error(error, error_size, "invalid hardware handle");
+		return -1;
+	}
+	memset(&kernel_stats, 0, sizeof(kernel_stats));
+	if (ioctl(hw->dma_fd, JOHN_DMA_IOC_STATS, &kernel_stats)) {
+		set_error(error, error_size, "JOHN_DMA_IOC_STATS: %s", strerror(errno));
+		return -1;
+	}
+	stats->tx_completions = kernel_stats.tx_completions;
+	stats->rx_completions = kernel_stats.rx_completions;
+	stats->running = kernel_stats.running;
+	stats->reserved = 0;
 	return 0;
 }
 

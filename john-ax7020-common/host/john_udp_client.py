@@ -14,6 +14,7 @@ import time
 
 COMMON_HEADER = struct.Struct("<16I")
 STATUS_WORDS = struct.Struct("!16I")
+HEARTBEAT_WORDS = struct.Struct("!12I")
 
 THIS_DIR = Path(__file__).resolve().parent
 NODE_DIR = THIS_DIR.parent / "linux" / "node"
@@ -82,6 +83,22 @@ class Client:
         )
         return self.exchange(msg, {proto.CAPS})
 
+    def heartbeat(self):
+        msg = proto.Message(
+            msg_type=proto.HEARTBEAT,
+            session=0,
+            sequence=self._next_sequence(),
+        )
+        return self.exchange(msg, {proto.HEARTBEAT_REPLY})
+
+    def health(self):
+        msg = proto.Message(
+            msg_type=proto.HEALTH,
+            session=0,
+            sequence=self._next_sequence(),
+        )
+        return self.exchange(msg, {proto.HEALTH_REPLY})
+
     def status(self, session=0, identity=(0, 0, 0, 0)):
         task_lo, task_hi, shard, batch = identity
         msg = proto.Message(
@@ -95,7 +112,7 @@ class Client:
         )
         return self.exchange(msg, {proto.STATUS_REPLY})
 
-    def run(self, request: bytes, poll_interval: float):
+    def submit(self, request: bytes):
         if len(request) < 64:
             raise ValueError("truncated common request")
         header = COMMON_HEADER.unpack_from(request)
@@ -138,6 +155,12 @@ class Client:
         )
         self.exchange(commit, {proto.ACK})
 
+        return {"session": session, "identity": identity, "base": base}
+
+    def wait(self, handle, poll_interval: float):
+        session = handle["session"]
+        identity = handle["identity"]
+
         while True:
             response = self.status(session, identity)
             status = parse_status(response.payload)
@@ -146,8 +169,15 @@ class Client:
                 break
             if status["service_state"] == proto.STATE_ERROR:
                 raise RuntimeError("node entered hardware error state")
+            if status["service_state"] == proto.STATE_CANCELLED:
+                raise RuntimeError("node task was cancelled")
             time.sleep(poll_interval)
+        handle["result_len"] = result_len
+        return status
 
+    def fetch(self, handle):
+        result_len = handle["result_len"]
+        base = handle["base"]
         result = bytearray()
         while len(result) < result_len:
             get = proto.Message(
@@ -163,7 +193,25 @@ class Client:
             if not response.payload:
                 raise RuntimeError("empty result fragment")
             result.extend(response.payload)
-        return bytes(result), status
+        return bytes(result)
+
+    def release(self, handle):
+        base = handle["base"]
+        result_len = handle["result_len"]
+        release = proto.Message(
+            msg_type=proto.RESULT_ACK,
+            sequence=self._next_sequence(),
+            total_len=result_len,
+            **base,
+        )
+        self.exchange(release, {proto.ACK})
+
+    def run(self, request: bytes, poll_interval: float):
+        handle = self.submit(request)
+        status = self.wait(handle, poll_interval)
+        result = self.fetch(handle)
+        self.release(handle)
+        return result, status
 
 
 def parse_status(payload: bytes):
@@ -188,6 +236,26 @@ def parse_status(payload: bytes):
     }
 
 
+def parse_heartbeat(payload: bytes):
+    if len(payload) != HEARTBEAT_WORDS.size:
+        raise ValueError("invalid heartbeat payload")
+    values = HEARTBEAT_WORDS.unpack(payload)
+    return {
+        "health_abi": values[0],
+        "sequence": values[1],
+        "service_uptime_s": values[2],
+        "service_state": values[3],
+        "queued": values[4],
+        "results_cached": values[5],
+        "bitstream_load_state": values[6],
+        "pl_status": values[7],
+        "algorithm": values[8],
+        "build_date": values[9],
+        "dma_tx_completions": values[10],
+        "dma_rx_completions": values[11],
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="169.254.173.138")
@@ -196,6 +264,8 @@ def main():
     parser.add_argument("--retries", type=int, default=5)
     sub = parser.add_subparsers(dest="action", required=True)
     sub.add_parser("discover")
+    sub.add_parser("heartbeat")
+    sub.add_parser("health")
     run = sub.add_parser("run")
     run.add_argument("request", type=Path)
     run.add_argument("response", type=Path)
@@ -206,6 +276,10 @@ def main():
     try:
         if args.action == "discover":
             print(json.dumps(parse_status(client.discover().payload), indent=2))
+        elif args.action == "heartbeat":
+            print(json.dumps(parse_heartbeat(client.heartbeat().payload), indent=2))
+        elif args.action == "health":
+            print(json.dumps(json.loads(client.health().payload), indent=2))
         else:
             response, status = client.run(
                 args.request.read_bytes(), args.poll_interval

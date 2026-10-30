@@ -1,5 +1,15 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-10-30 16:45 健康监控与PS任务队列实板进展（最新）
+
+开发分支 `feature/node-health-queue-v0.2` 已实现并实板运行：任务状态按 `session+task+shard+batch` 独立保存；新增 `HEARTBEAT/HEARTBEAT_REPLY`、`HEALTH/HEALTH_REPLY` 和 `RESULT_ACK`；Linux节点默认支持8个在途任务和16个结果缓存。心跳使用上位机请求/节点应答，避免慢速上位机积压主动广播包。
+
+健康消息已经实际返回Linux uptime/load、千兆网口carrier/速率/双工/收发错误、XADC温度和VCCINT/VCCAUX/VCCBRAM、DMA双向完成计数、Bitstream build date/ABI/算法/单元/Core/时钟/加载状态，以及队列和结果缓存状态。Bitstream详细PL错误不上传，仅在Linux持久化日志中记录。
+
+最终实板镜像SHA256为 `8f78380f43a3564cd2de8966838ca96e1f11b2fb2518c338b5a7557232a05f33`。4个客户端并发提交时观测到1批RUNNING、3批QUEUED；4批均返回2472字节且每批96/96真值正确，`RESULT_ACK` 后结果缓存归零且重复确认保持幂等。固定IP `169.254.173.138/16`、节点配置和日志均存放于SD启动分区。详细证据：`john-ax7020-common/reports/linux_health_queue_validation_20261030.md`。
+
+尚未完成：其他四算法实板闭环、UDP窗口确认、双节点上位机调度、SSH身份持久化、长时间压力与断电恢复。当前结果不能表述为五算法或双节点已经验收。
+
 ## 2026-10-30 16:20 Linux 常驻 UDP 节点实板进展（最新）
 
 当前开发分支为 `feature/linux-udp-node-v0.1`，基于已推送基线提交 `f731b25`。已新增算法无关的 Linux DMA 客户端驱动、C 版 AXI-Lite/DMA 用户态共享库、PetaLinux 配方、自启动脚本、UDP v1 服务和 Windows/Linux Python 客户端。

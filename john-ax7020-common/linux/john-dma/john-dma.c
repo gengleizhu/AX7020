@@ -35,13 +35,26 @@ struct john_dma_dev {
 	struct completion rx_done;
 	struct mutex lock;
 	atomic_t opened;
+	atomic64_t tx_completions;
+	atomic64_t rx_completions;
 	bool running;
 	struct miscdevice miscdev;
 };
 
-static void john_dma_complete(void *arg)
+static void john_dma_tx_complete(void *arg)
 {
-	complete(arg);
+	struct john_dma_dev *jd = arg;
+
+	atomic64_inc(&jd->tx_completions);
+	complete(&jd->tx_done);
+}
+
+static void john_dma_rx_complete(void *arg)
+{
+	struct john_dma_dev *jd = arg;
+
+	atomic64_inc(&jd->rx_completions);
+	complete(&jd->rx_done);
 }
 
 static int john_dma_open(struct inode *inode, struct file *file)
@@ -147,8 +160,8 @@ static long john_dma_run(struct john_dma_dev *jd, void __user *argp)
 		ret = -EIO;
 		goto out_stop;
 	}
-	rxd->callback = john_dma_complete;
-	rxd->callback_param = &jd->rx_done;
+	rxd->callback = john_dma_rx_complete;
+	rxd->callback_param = jd;
 	rx_cookie = dmaengine_submit(rxd);
 	if (dma_submit_error(rx_cookie)) {
 		ret = dma_submit_error(rx_cookie);
@@ -161,8 +174,8 @@ static long john_dma_run(struct john_dma_dev *jd, void __user *argp)
 		ret = -EIO;
 		goto out_stop;
 	}
-	txd->callback = john_dma_complete;
-	txd->callback_param = &jd->tx_done;
+	txd->callback = john_dma_tx_complete;
+	txd->callback_param = jd;
 	tx_cookie = dmaengine_submit(txd);
 	if (dma_submit_error(tx_cookie)) {
 		ret = dma_submit_error(tx_cookie);
@@ -229,12 +242,19 @@ static long john_dma_ioctl(struct file *file, unsigned int cmd,
 		.max_tx_bytes = JOHN_DMA_MAX_TX,
 		.max_rx_bytes = JOHN_DMA_MAX_RX,
 	};
+	struct john_dma_stats stats;
 
 	switch (cmd) {
 	case JOHN_DMA_IOC_RUN:
 		return john_dma_run(jd, argp);
 	case JOHN_DMA_IOC_INFO:
 		return copy_to_user(argp, &info, sizeof(info)) ? -EFAULT : 0;
+	case JOHN_DMA_IOC_STATS:
+		memset(&stats, 0, sizeof(stats));
+		stats.tx_completions = atomic64_read(&jd->tx_completions);
+		stats.rx_completions = atomic64_read(&jd->rx_completions);
+		stats.running = jd->running;
+		return copy_to_user(argp, &stats, sizeof(stats)) ? -EFAULT : 0;
 	default:
 		return -ENOTTY;
 	}
@@ -263,6 +283,8 @@ static int john_dma_probe(struct platform_device *pdev)
 	init_completion(&jd->tx_done);
 	init_completion(&jd->rx_done);
 	atomic_set(&jd->opened, 0);
+	atomic64_set(&jd->tx_completions, 0);
+	atomic64_set(&jd->rx_completions, 0);
 
 	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
 	if (ret) {

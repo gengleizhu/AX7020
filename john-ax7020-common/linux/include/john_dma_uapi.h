@@ -4,7 +4,7 @@
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
-#define JOHN_DMA_API_VERSION 0x00010000U
+#define JOHN_DMA_API_VERSION 0x00010001U
 #define JOHN_DMA_IOC_MAGIC   'J'
 
 struct john_dma_xfer {
@@ -25,7 +25,15 @@ struct john_dma_info {
 	__u32 reserved;
 };
 
+struct john_dma_stats {
+	__u64 tx_completions;
+	__u64 rx_completions;
+	__u32 running;
+	__u32 reserved;
+};
+
 #define JOHN_DMA_IOC_RUN  _IOWR(JOHN_DMA_IOC_MAGIC, 1, struct john_dma_xfer)
 #define JOHN_DMA_IOC_INFO _IOR(JOHN_DMA_IOC_MAGIC, 2, struct john_dma_info)
+#define JOHN_DMA_IOC_STATS _IOR(JOHN_DMA_IOC_MAGIC, 3, struct john_dma_stats)
 
 #endif

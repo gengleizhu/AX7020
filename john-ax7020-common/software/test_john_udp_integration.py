@@ -165,6 +165,13 @@ def main():
             assert reply.offset == len(result)
             result.extend(reply.payload)
         args.response.write_bytes(result)
+        release = proto.Message(
+            proto.RESULT_ACK,
+            sequence=peer.next_sequence(),
+            total_len=result_len,
+            **base,
+        )
+        assert peer.request(release).msg_type == proto.ACK
         print(
             "PASS: out-of-order, duplicate, conflicting duplicate, incomplete "
             f"commit, DMA, and result reassembly ({len(result)} bytes)"

@@ -1,14 +1,50 @@
 #!/bin/sh
 
 PIDFILE=/var/run/john-node.pid
-LOGFILE=/var/log/john-node.log
+BOOT=/media/sd-mmcblk0p1
+CONFIG=$BOOT/john-node.conf
+NODE_ID=ax7020-1
+NODE_INTERFACE=eth0
+NODE_PORT=42000
+QUEUE_DEPTH=8
+RESULT_DEPTH=16
+RESULT_TTL=600
+
+[ -r "$CONFIG" ] && . "$CONFIG"
+
+if grep -q " $BOOT " /proc/mounts 2>/dev/null; then
+  LOGDIR=$BOOT/john-node/log
+else
+  LOGDIR=/var/log
+fi
+mkdir -p "$LOGDIR"
+LOGFILE=$LOGDIR/john-node.log
+
+rotate_log() {
+  [ -f "$LOGFILE" ] || return 0
+  size=$(wc -c <"$LOGFILE")
+  [ "$size" -lt 1048576 ] && return 0
+  rm -f "$LOGFILE.4"
+  [ -f "$LOGFILE.3" ] && mv "$LOGFILE.3" "$LOGFILE.4"
+  [ -f "$LOGFILE.2" ] && mv "$LOGFILE.2" "$LOGFILE.3"
+  [ -f "$LOGFILE.1" ] && mv "$LOGFILE.1" "$LOGFILE.2"
+  mv "$LOGFILE" "$LOGFILE.1"
+}
 
 case "$1" in
   start)
     [ -e /dev/john-dma ] || exit 0
     [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && exit 0
+    if [ -n "${NODE_IP:-}" ]; then
+      /sbin/ip addr replace "$NODE_IP" dev "$NODE_INTERFACE" || true
+      /sbin/ip link set "$NODE_INTERFACE" up || true
+    fi
+    rotate_log
     echo "Starting john-node"
-    /usr/bin/python3 /usr/sbin/john-node --bind 0.0.0.0 --port 42000 \
+    /usr/bin/python3 /usr/sbin/john-node \
+      --bind 0.0.0.0 --port "$NODE_PORT" --node-id "$NODE_ID" \
+      --interface "$NODE_INTERFACE" --queue-depth "$QUEUE_DEPTH" \
+      --result-depth "$RESULT_DEPTH" --result-ttl "$RESULT_TTL" \
       >>"$LOGFILE" 2>&1 &
     echo $! >"$PIDFILE"
     ;;
