@@ -1,5 +1,15 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-03 最新：Git 基线、统一 Python SDK 和远程切换控制面
+
+已将五算法 Linux 在线切换/恢复及启动镜像阶段冻结为 Git 提交 `a65734e`（`feature/node-health-queue-v0.2`），并推送至 `origin`，可作为后续回滚基线。
+
+新增统一上位机入口 `john-ax7020-common/host/john_fpga_client.py`。五种算法均通过 `prepare_batch()` 和 `JohnFpgaClient.execute()` 提交；SDK负责算法原生组包、固定批次填充、公共 DMA 帧、结果解析、填充记录剔除与最终匹配。低层客户端补充 `cancel()`。五个可运行示例及切换示例位于 `john-ax7020-common/host/examples/`，接口说明位于 `john-ax7020-common/host/SDK_INTEGRATION.md`。软件联调包更新为 `output/AX7020_Python_Integration_Kit_20261103_v3.zip`。
+
+新增独立 `john-manage` UDP 管理服务（端口 42001），采用 HMAC-SHA256、时间戳和单次 nonce；只接受算法编号，由板端解析 `/etc/john/bitstreams` 白名单 manifest，不接受远程路径。管理服务独立于42000端口的数据服务，可在 `john-node` 和 DMA 驱动重启期间继续查询切换状态，并支持显式 `recover`。PetaLinux recipe、部署脚本和启动脚本已补齐。28项公共软件测试全部通过，其中新增9项覆盖五算法统一接口、可靠UDP重试和管理认证/重放/白名单。
+
+当前边界：本轮新增代码尚未在 Ubuntu PetaLinux 工程重新构建，管理服务也尚未写入当前板卡启动镜像；检查时板卡 `169.254.173.138` 不在线，Ubuntu VM SSH 需要重新授权，因此远程切换仅完成代码与离线测试，不能写成实板验收完成。下一步是部署/构建 image.ub、配置每板唯一管理密钥，然后在实板验证五算法远程切换、失败恢复和任务闭环。
+
 ## 2026-11-03 最新：启动镜像固化和冷启动验收通过
 
 已将最新 john-node、john-dma、john-bitstream、五种算法 .bit.bin 和 manifest 固化到 PetaLinux 2020.1 image.ub。构建 3593 个任务全部成功；新镜像大小 26351568 bytes，SHA256 为 3ecfa55e239207630c4c92f3d6b5ea4a54aad79d6c98c32494522a1ba83ab57e。

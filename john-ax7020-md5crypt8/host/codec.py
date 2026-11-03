@@ -2,6 +2,10 @@
 import hashlib
 import struct
 
+_CRYPT64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+_MD5_GROUPS = ((0, 6, 12, 4), (1, 7, 13, 4), (2, 8, 14, 4),
+               (3, 9, 15, 4), (4, 10, 5, 4), (-1, -1, 11, 2))
+
 def digest(password,salt):
     p=password;s=salt
     alternate=hashlib.md5(p+s+p).digest()
@@ -18,6 +22,21 @@ def digest(password,salt):
         data+=value if i&1 else p
         value=hashlib.md5(data).digest()
     return value
+
+def crypt_checksum(raw):
+    """Encode a canonical 16-byte MD5-crypt digest without recomputing it."""
+    if len(raw) != 16:
+        raise ValueError('Raw digest must be 16 bytes')
+    out = ''
+    for a, b, c, count in _MD5_GROUPS:
+        value = ((0 if a < 0 else raw[a]) << 16) | ((0 if b < 0 else raw[b]) << 8) | raw[c]
+        for _ in range(count):
+            out += _CRYPT64[value & 63]
+            value >>= 6
+    return out
+
+def crypt_string(password, salt):
+    return '$1$' + salt.decode('ascii') + '$' + crypt_checksum(digest(password, salt))
 
 def encode_job(password,salt,job_id):
     if not isinstance(job_id,int) or not 0<=job_id<2**64:

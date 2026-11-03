@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import random
 import socket
@@ -20,6 +21,7 @@ THIS_DIR = Path(__file__).resolve().parent
 NODE_DIR = THIS_DIR.parent / "linux" / "node"
 sys.path.insert(0, str(NODE_DIR))
 import john_udp_protocol as proto  # noqa: E402
+import john_management as management  # noqa: E402
 
 
 class Client:
@@ -206,12 +208,81 @@ class Client:
         )
         self.exchange(release, {proto.ACK})
 
+    def cancel(self, handle):
+        """Cancel an uploading/queued task; a running DMA operation finishes safely."""
+        cancel = proto.Message(
+            msg_type=proto.CANCEL,
+            sequence=self._next_sequence(),
+            **handle["base"],
+        )
+        return self.exchange(cancel, {proto.ACK})
+
     def run(self, request: bytes, poll_interval: float):
         handle = self.submit(request)
         status = self.wait(handle, poll_interval)
         result = self.fetch(handle)
         self.release(handle)
         return result, status
+
+
+class ManagementClient(Client):
+    """Authenticated client for the independent bitstream management daemon."""
+
+    def __init__(self, host, port, key, timeout=1.0, retries=5):
+        super().__init__(host, port, timeout, retries)
+        self.key = management.load_key(key)
+        self.session = random.getrandbits(32) or 1
+
+    def _management_exchange(self, msg_type, expected_type, action, values=None):
+        sequence = self._next_sequence()
+        body = dict(values or {})
+        body.update({
+            "action": action,
+            "timestamp": int(time.time()),
+            "nonce": os.urandom(16).hex(),
+        })
+        request = proto.Message(
+            msg_type=msg_type, session=self.session, sequence=sequence,
+            payload=management.encode(body, self.key, self.session, sequence),
+        )
+        response = self.exchange(request, {expected_type})
+        decoded = management.decode(response.payload, self.key, self.session,
+                                    sequence, max_age=60)
+        if decoded.get("action") != action + "_reply":
+            raise RuntimeError("wrong management response action")
+        return decoded
+
+    def capabilities(self):
+        return self._management_exchange(
+            proto.MANAGE_CAPS, proto.MANAGE_CAPS_REPLY, "caps")
+
+    def switch_status(self):
+        return self._management_exchange(
+            proto.MANAGE_STATUS, proto.MANAGE_STATUS_REPLY, "status")
+
+    def switch_algorithm(self, algorithm, *, recover=False, drain_seconds=60,
+                         wait=True, poll_interval=0.25):
+        result = self._management_exchange(
+            proto.MANAGE_SWITCH, proto.MANAGE_SWITCH_REPLY, "switch",
+            {"algorithm": algorithm, "recover": recover,
+             "drain_seconds": drain_seconds},
+        )
+        if not wait:
+            return result
+        operation_id = result["operation"]["operation_id"]
+        deadline = time.monotonic() + max(90.0, float(drain_seconds) + 60.0)
+        while True:
+            status = self.switch_status()
+            operation = status["operation"]
+            if operation["operation_id"] != operation_id:
+                raise RuntimeError("management operation identity changed")
+            if operation["state"] == "succeeded":
+                return status
+            if operation["state"] == "failed":
+                raise RuntimeError("algorithm switch failed; inspect board management log")
+            if time.monotonic() >= deadline:
+                raise TimeoutError("algorithm switch status timeout")
+            time.sleep(poll_interval)
 
 
 def parse_status(payload: bytes):

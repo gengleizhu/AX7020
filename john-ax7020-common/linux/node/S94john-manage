@@ -1,0 +1,60 @@
+#!/bin/sh
+
+PIDFILE=/var/run/john-manage.pid
+BOOT=/media/sd-mmcblk0p1
+CONFIG=$BOOT/john-manage.conf
+MANAGEMENT_PORT=42001
+NODE_PORT=42000
+KEY_FILE=$BOOT/john-management.key
+MANIFEST_DIR=/etc/john/bitstreams
+
+[ -r "$CONFIG" ] && . "$CONFIG"
+
+if grep -q " $BOOT " /proc/mounts 2>/dev/null; then
+  LOGDIR=$BOOT/john-node/log
+else
+  LOGDIR=/var/log
+fi
+mkdir -p "$LOGDIR"
+LOGFILE=$LOGDIR/john-manage.log
+
+case "$1" in
+  start)
+    [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && exit 0
+    if [ ! -r "$KEY_FILE" ]; then
+      echo "john-manage disabled: create a 32-byte key at $KEY_FILE"
+      exit 0
+    fi
+    echo "Starting john-manage"
+    /usr/bin/python3 /usr/sbin/john-manage \
+      --bind 0.0.0.0 --port "$MANAGEMENT_PORT" --node-port "$NODE_PORT" \
+      --key-file "$KEY_FILE" --manifest-dir "$MANIFEST_DIR" \
+      >>"$LOGFILE" 2>&1 &
+    echo $! >"$PIDFILE"
+    ;;
+  stop)
+    if [ -f "$PIDFILE" ]; then
+      kill "$(cat "$PIDFILE")" 2>/dev/null || true
+      rm -f "$PIDFILE"
+    fi
+    ;;
+  restart)
+    "$0" stop
+    sleep 1
+    "$0" start
+    ;;
+  status)
+    if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+      echo "john-manage is running"
+      exit 0
+    fi
+    echo "john-manage is stopped or disabled"
+    exit 1
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
+
+exit 0

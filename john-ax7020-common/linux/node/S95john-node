@@ -33,6 +33,7 @@ rotate_log() {
 
 case "$1" in
   start)
+    [ ! -x /etc/init.d/john-manage ] || /etc/init.d/john-manage start || true
     [ -e /dev/john-dma ] || exit 0
     [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && exit 0
     if [ -n "${NODE_IP:-}" ]; then
