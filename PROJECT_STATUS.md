@@ -1,5 +1,11 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-03 续测：网络恢复与统一 SDK 实板验证
+
+网线重新连接后，UDP discover/health正常：eth0为1000 Mbps全双工，算法3就绪，maintenance=false。运行 `python john-ax7020-common/host/examples/run_md5crypt.py --host 169.254.173.138` 成功：请求10056字节、响应2472字节，3个有效候选，正确命中password；其余填充记录未暴露到上层。此结果验证了新版SDK的MD5路径，不能代替其余四算法新版SDK验收。
+
+修正john-node配方：除了可执行入口john-bitstream，还安装john_bitstream.py供新管理服务导入。尚待重新构建镜像。继续部署受SSH连接阻塞：板卡重启后RSA主机指纹变化（需串口核对），VM的现有免密认证失败；未绕过主机验证、未更换SD镜像。待恢复连接后继续管理服务部署、五算法远程切换及镜像固化。
+
 ## 2026-11-03 最新：Git 基线、统一 Python SDK 和远程切换控制面
 
 已将五算法 Linux 在线切换/恢复及启动镜像阶段冻结为 Git 提交 `a65734e`（`feature/node-health-queue-v0.2`），并推送至 `origin`，可作为后续回滚基线。

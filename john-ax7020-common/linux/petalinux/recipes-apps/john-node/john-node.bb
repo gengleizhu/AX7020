@@ -42,6 +42,7 @@ do_install() {
 	install -m 0644 ${WORKDIR}/john_udp_protocol.py ${D}${sbindir}/john_udp_protocol.py
 	install -m 0644 ${WORKDIR}/john_health.py ${D}${sbindir}/john_health.py
 	install -m 0755 ${WORKDIR}/john_bitstream.py ${D}${sbindir}/john-bitstream
+	install -m 0644 ${WORKDIR}/john_bitstream.py ${D}${sbindir}/john_bitstream.py
 	install -m 0755 ${WORKDIR}/john_manage_service.py ${D}${sbindir}/john-manage
 	install -m 0644 ${WORKDIR}/john_management.py ${D}${sbindir}/john_management.py
 	install -d ${D}${libdir}
