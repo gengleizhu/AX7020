@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,6 +80,16 @@ def message(kind, session, task, batch, **kwargs):
 
 
 class QueueTest(unittest.TestCase):
+    def test_maintenance_rejects_new_task_without_destroying_upload(self):
+        first = message(proto.BEGIN, 101, 101, 101, total_len=64)
+        self.assertEqual(self.node.begin(first), proto.OK)
+        with patch.object(service, 'MAINTENANCE_FILE') as marker:
+            marker.exists.return_value = True
+            self.assertEqual(self.node.begin(first), proto.OK)
+            second = message(proto.BEGIN, 102, 102, 102, total_len=64)
+            self.assertEqual(self.node.begin(second), proto.ERR_BUSY)
+        self.assertEqual(len(self.node.tasks), 1)
+
     def setUp(self):
         self.hardware = FakeHardware()
         self.node = service.Node(

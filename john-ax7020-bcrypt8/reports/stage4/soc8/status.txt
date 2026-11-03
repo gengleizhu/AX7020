@@ -1,5 +1,5 @@
-cores=8 physical_cores=8 blackboxes=0 scope=full_PS_DMA_PL period_ns=10 wns_ns=0.934
-estimated_fmax_mhz=110.30222810500771
+cores=8 physical_cores=8 blackboxes=0 scope=full_PS_DMA_PL period_ns=10 wns_ns=0.956
+estimated_fmax_mhz=110.5705440070765
 board=AX7020 part=xc7z020clg400-2 vivado=2020.1
-timing_pass=true whs_ns=0.036 delivery_exported=false board_tested=false
+timing_pass=true whs_ns=0.043 delivery_exported=false board_tested=false
 bitstream_generated=true xsa_generated=true delivery_exported=true board_tested=false

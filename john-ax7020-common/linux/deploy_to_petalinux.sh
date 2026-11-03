@@ -17,7 +17,10 @@ test -d "$meta" || {
 
 module="$meta/recipes-modules/john-dma"
 app="$meta/recipes-apps/john-node"
-mkdir -p "$module/files" "$app/files"
+firmware="$meta/recipes-apps/john-firmware"
+firmware_source="$here/../build/linux_firmware"
+user_rootfs="$meta/conf/user-rootfsconfig"
+mkdir -p "$module/files" "$app/files" "$firmware/files"
 
 cp "$here/petalinux/recipes-modules/john-dma/john-dma.bb" "$module/"
 cp "$here/john-dma/john-dma.c" "$module/files/"
@@ -28,12 +31,20 @@ cp "$here/petalinux/recipes-apps/john-node/john-node.bb" "$app/"
 cp "$here/node/john_node_service.py" "$app/files/"
 cp "$here/node/john_udp_protocol.py" "$app/files/"
 cp "$here/node/john_health.py" "$app/files/"
+cp "$here/node/john_bitstream.py" "$app/files/"
 cp "$here/node/S95john-node" "$app/files/"
 cp "$here/node/john_hw.c" "$app/files/"
 cp "$here/node/john_hw.h" "$app/files/"
 cp "$here/node/Makefile" "$app/files/"
 cp "$here/include/john_dma_uapi.h" "$app/files/"
 
-echo "Copied john-dma and john-node sources into $project"
+cp "$here/petalinux/recipes-apps/john-firmware/john-firmware.bb" "$firmware/"
+for name in bcrypt8 descrypt8 md5crypt8 sha256crypt8 sha512crypt4; do
+    cp "$firmware_source/john_ax7020_${name}.bit.bin" "$firmware/files/"
+    cp "$firmware_source/john_ax7020_${name}.json" "$firmware/files/"
+done
+grep -qx 'CONFIG_john-firmware' "$user_rootfs" || printf '\nCONFIG_john-firmware\n' >> "$user_rootfs"
+
+echo "Copied john-dma, john-node and five FPGA firmware images into $project"
 echo "Merge petalinux/device-tree/john-dma-client.dtsi into system-user.dtsi."
-echo "Then enable CONFIG_john-dma and CONFIG_john-node in rootfs_config."
+echo "Then enable CONFIG_john-dma, CONFIG_john-node and CONFIG_john-firmware in rootfs_config."

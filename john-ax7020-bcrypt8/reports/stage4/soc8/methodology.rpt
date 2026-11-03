@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.1 (win64) Build 2902540 Wed May 27 19:54:49 MDT 2020
-| Date         : Thu Oct 29 15:09:46 2026
+| Date         : Mon Nov  2 15:14:59 2026
 | Host         : PC-20260721WOKF running 64-bit major release  (build 9200)
 | Command      : report_methodology -file E:/zhugenglei.work/john/john-ax7020-bcrypt8/reports/stage4/soc8/methodology.rpt
 | Design       : john_soc_top
@@ -23,13 +23,13 @@ Table of Contents
           Floorplan: impl_1
       Design limits: <entire design considered>
              Max violations: <unlimited>
-             Violations found: 46
+             Violations found: 43
 +---------+----------+-----------------------------------------------------------+------------+
 | Rule    | Severity | Description                                               | Violations |
 +---------+----------+-----------------------------------------------------------+------------+
 | LUTAR-1 | Warning  | LUT drives async reset alert                              | 3          |
 | SYNTH-5 | Warning  | Mapped onto distributed RAM because of timing constraints | 32         |
-| SYNTH-6 | Warning  | Timing of a RAM block might be sub-optimal                | 11         |
+| SYNTH-6 | Warning  | Timing of a RAM block might be sub-optimal                | 8          |
 +---------+----------+-----------------------------------------------------------+------------+
 
 2. REPORT DETAILS
@@ -253,57 +253,42 @@ Related violations: <none>
 
 SYNTH-6#1 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[2].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[0].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#2 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[2].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[0].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#3 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[2].core/unit/S/S2_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[3].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#4 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[4].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[3].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#5 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[4].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[6].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#6 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[4].core/unit/S/S2_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[6].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#7 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[5].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[7].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 SYNTH-6#8 Warning
 Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[5].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
-Related violations: <none>
-
-SYNTH-6#9 Warning
-Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[5].core/unit/S/S2_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
-Related violations: <none>
-
-SYNTH-6#10 Warning
-Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[6].core/unit/S/S0_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
-Related violations: <none>
-
-SYNTH-6#11 Warning
-Timing of a RAM block might be sub-optimal  
-The timing for the instance compute/wrapper/proxies[0].proxy/cores[6].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
+The timing for the instance compute/wrapper/proxies[0].proxy/cores[7].core/unit/S/S1_reg, implemented as a RAM block, might be sub-optimal as no output register was merged into the block.
 Related violations: <none>
 
 

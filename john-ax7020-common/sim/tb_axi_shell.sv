@@ -92,7 +92,13 @@ module tb_axi_shell;
  end
  initial begin
   repeat(5)@(negedge aclk);aresetn=1;
-  rd('h84,0,1);native_initialized=1;repeat(3)@(negedge aclk);
+  if(ALG==1)begin
+   // bcrypt must be able to accept its John initialization packet first.
+   rd('h84,1,1);
+  end else begin
+   rd('h84,0,1);native_initialized=1;
+  end
+  repeat(3)@(negedge aclk);
   rd('h00,32'h4a435250,-1);rd('h04,32'h10001,-1);rd('h08,65536,-1);rd('h20,ALG,-1);
   rd('he4,ALG*4096,-1);rd(ALG*4096,1,-1);rd(ALG==1?'h2000:'h1000,0,-1);
   rd('h8000,1,-1);rd('h8100,1,-1);rd('h8f00,0,-1);

@@ -8,6 +8,7 @@ import argparse
 import ctypes
 import json
 import logging
+from pathlib import Path
 import socket
 import struct
 import threading
@@ -22,6 +23,7 @@ STREAM_ABI = 0x00010000
 HEALTH_ABI = 0x00010000
 MAX_REQUEST = 64 + 65536
 MAX_RESPONSE = 64 + 8192
+MAINTENANCE_FILE = Path('/run/john-node.maintenance')
 COMMON_HEADER = struct.Struct("<16I")
 STATUS_WORDS = struct.Struct("!16I")
 HEARTBEAT_WORDS = struct.Struct("!12I")
@@ -256,6 +258,8 @@ class Node:
                 if existing.request_len != msg.total_len:
                     return proto.ERR_REQUEST
                 return proto.OK if existing.state == proto.STATE_UPLOADING else proto.ERR_BUSY
+            if MAINTENANCE_FILE.exists():
+                return proto.ERR_BUSY
             if self._active_count_locked() >= self.queue_depth:
                 return proto.ERR_QUEUE_FULL
             self.tasks[key] = Task(msg)
@@ -475,6 +479,7 @@ class Node:
                 "result_capacity": self.result_depth,
                 "results_cached": self._result_count_locked(),
                 "tasks_tracked": len(self.tasks),
+                "maintenance": MAINTENANCE_FILE.exists(),
                 "running_task": task_name(running) if running else "",
             }
         payload = {

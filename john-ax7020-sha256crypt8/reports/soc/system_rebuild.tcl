@@ -40,7 +40,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 
 # The design that will be created by this Tcl script contains the following 
 # module references:
-# john_axi_shell_bd
+# john_startup_reset, john_axi_shell_bd
 
 # Please add the sources of those modules before sourcing this Tcl script.
 
@@ -162,6 +162,7 @@ xilinx.com:ip:axi_gpio:2.0\
 set bCheckModules 1
 if { $bCheckModules == 1 } {
    set list_check_mods "\ 
+john_startup_reset\
 john_axi_shell_bd\
 "
 
@@ -1039,6 +1040,17 @@ proc create_root_design { parentCell } {
    CONFIG.TDATA_NUM_BYTES {4} \
  ] $result_slice
 
+  # Create instance: startup_reset, and set properties
+  set block_name john_startup_reset
+  set block_cell_name startup_reset
+  if { [catch {set startup_reset [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $startup_reset eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: status, and set properties
   set status [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 status ]
   set_property -dict [ list \
@@ -1090,11 +1102,12 @@ proc create_root_design { parentCell } {
   connect_bd_net -net dma_mm2s_introut [get_bd_pins dma/mm2s_introut] [get_bd_pins dma_irq_concat/In0]
   connect_bd_net -net dma_s2mm_introut [get_bd_pins dma/s2mm_introut] [get_bd_pins dma_irq_concat/In1]
   connect_bd_net -net one_dout [get_bd_pins one/dout] [get_bd_pins reset/dcm_locked]
-  connect_bd_net -net ps7_0_FCLK_CLK0 [get_bd_ports clk100] [get_bd_pins control/ACLK] [get_bd_pins control/M00_ACLK] [get_bd_pins control/M01_ACLK] [get_bd_pins control/M02_ACLK] [get_bd_pins control/S00_ACLK] [get_bd_pins dma/m_axi_mm2s_aclk] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins dma/s_axi_lite_aclk] [get_bd_pins memory/ACLK] [get_bd_pins memory/M00_ACLK] [get_bd_pins memory/S00_ACLK] [get_bd_pins memory/S01_ACLK] [get_bd_pins ps7_0/FCLK_CLK0] [get_bd_pins ps7_0/M_AXI_GP0_ACLK] [get_bd_pins ps7_0/S_AXI_HP0_ACLK] [get_bd_pins reset/slowest_sync_clk] [get_bd_pins result_slice/aclk] [get_bd_pins status/s_axi_aclk] [get_bd_pins unified/aclk]
+  connect_bd_net -net ps7_0_FCLK_CLK0 [get_bd_ports clk100] [get_bd_pins control/ACLK] [get_bd_pins control/M00_ACLK] [get_bd_pins control/M01_ACLK] [get_bd_pins control/M02_ACLK] [get_bd_pins control/S00_ACLK] [get_bd_pins dma/m_axi_mm2s_aclk] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins dma/s_axi_lite_aclk] [get_bd_pins memory/ACLK] [get_bd_pins memory/M00_ACLK] [get_bd_pins memory/S00_ACLK] [get_bd_pins memory/S01_ACLK] [get_bd_pins ps7_0/FCLK_CLK0] [get_bd_pins ps7_0/M_AXI_GP0_ACLK] [get_bd_pins ps7_0/S_AXI_HP0_ACLK] [get_bd_pins reset/slowest_sync_clk] [get_bd_pins result_slice/aclk] [get_bd_pins startup_reset/clk] [get_bd_pins status/s_axi_aclk] [get_bd_pins unified/aclk]
   connect_bd_net -net ps7_0_FCLK_RESET0_N [get_bd_pins ps7_0/FCLK_RESET0_N] [get_bd_pins reset/ext_reset_in]
   connect_bd_net -net reset_interconnect_aresetn [get_bd_pins control/ARESETN] [get_bd_pins memory/ARESETN] [get_bd_pins reset/interconnect_aresetn]
   connect_bd_net -net reset_peripheral_aresetn [get_bd_ports resetn] [get_bd_pins control/M00_ARESETN] [get_bd_pins control/M01_ARESETN] [get_bd_pins control/M02_ARESETN] [get_bd_pins control/S00_ARESETN] [get_bd_pins dma/axi_resetn] [get_bd_pins memory/M00_ARESETN] [get_bd_pins memory/S00_ARESETN] [get_bd_pins memory/S01_ARESETN] [get_bd_pins reset/peripheral_aresetn] [get_bd_pins result_slice/aresetn] [get_bd_pins status/s_axi_aresetn] [get_bd_pins unified/aresetn]
-  connect_bd_net -net zero_dout [get_bd_pins reset/aux_reset_in] [get_bd_pins reset/mb_debug_sys_rst] [get_bd_pins zero/dout]
+  connect_bd_net -net startup_reset_resetn [get_bd_pins reset/aux_reset_in] [get_bd_pins startup_reset/resetn]
+  connect_bd_net -net zero_dout [get_bd_pins reset/mb_debug_sys_rst] [get_bd_pins zero/dout]
 
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x40000000 -target_address_space [get_bd_addr_spaces dma/Data_MM2S] [get_bd_addr_segs ps7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force

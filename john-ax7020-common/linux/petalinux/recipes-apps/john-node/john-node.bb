@@ -6,6 +6,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SRC_URI = "file://john_node_service.py \
            file://john_udp_protocol.py \
            file://john_health.py \
+           file://john_bitstream.py \
            file://S95john-node \
            file://john_hw.c \
            file://john_hw.h \
@@ -37,6 +38,7 @@ do_install() {
 	install -m 0755 ${WORKDIR}/john_node_service.py ${D}${sbindir}/john-node
 	install -m 0644 ${WORKDIR}/john_udp_protocol.py ${D}${sbindir}/john_udp_protocol.py
 	install -m 0644 ${WORKDIR}/john_health.py ${D}${sbindir}/john_health.py
+	install -m 0755 ${WORKDIR}/john_bitstream.py ${D}${sbindir}/john-bitstream
 	install -d ${D}${libdir}
 	install -m 0755 ${WORKDIR}/libjohnhw.so ${D}${libdir}/libjohnhw.so
 	install -d ${D}${sysconfdir}/init.d

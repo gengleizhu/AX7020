@@ -80,6 +80,12 @@ def main():
             (offset, request[offset:offset + proto.MAX_PAYLOAD])
             for offset in range(0, len(request), proto.MAX_PAYLOAD)
         ]
+        # Small algorithm initialization batches (notably bcrypt) can fit in
+        # one UDP payload.  Split those into two legal fragments so the early
+        # COMMIT path below still proves incomplete-request rejection.
+        if len(fragments) == 1 and len(request) > 1:
+            split = len(request) // 2
+            fragments = [(0, request[:split]), (split, request[split:])]
 
         # Accept a fragment delivered out of order and the same fragment retried.
         offset, payload = fragments[-1]

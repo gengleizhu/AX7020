@@ -1,5 +1,45 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-03 最新：启动镜像固化和冷启动验收通过
+
+已将最新 john-node、john-dma、john-bitstream、五种算法 .bit.bin 和 manifest 固化到 PetaLinux 2020.1 image.ub。构建 3593 个任务全部成功；新镜像大小 26351568 bytes，SHA256 为 3ecfa55e239207630c4c92f3d6b5ea4a54aad79d6c98c32494522a1ba83ab57e。
+
+新镜像已写入 AX7020 SD 卡并重启。节点服务自动启动；冷启动 MD5 96/96、在线切换 SHA256 96 条、切回 MD5 96/96 均通过。板卡最终运行 MD5，FPGA Manager 为 operating，无 maintenance 标记。SD 旧镜像保留为 image.ub.pre_persist_20261103。详细路径、命令和回滚方法见 john-ax7020-common/reports/petalinux_persistence_validation_20261103.md。
+
+## 2026-11-02 最新：五算法Linux在线切换及失败恢复通过
+
+已完成五算法通过Linux FPGA Manager的连续在线切换、自检及UDP/DMA计算验证，未重启Linux。新增 `john-bitstream --recover`：加载失败保持停接单，管理员指定可信manifest恢复；算法标识不匹配、无效bitstream两种实板故障均成功恢复至MD5，随后96/96摘要正确。恢复后额外3批UDP/DMA通过。加载器7项、队列4项测试通过。
+
+详细命令、路径、结果和边界见 `john-ax7020-common/reports/online_switch_validation_20261102.md`，本节替代下方旧阶段进度。当前板端MD5服务运行。文件已备份SD，但RAM rootfs更新尚未固化至image.ub；未新增远程UDP切换命令、自动回滚或完成长期稳定性验收。源码和构建产物仍未提交。
+
+## 2026-11-02 第二阶段 Linux加载实板里程碑
+
+五算法已通过Bootgen2020.1生成.bin和SHA256 manifest，位于 `john-ax7020-common/build/linux_firmware/`，可用 `scripts/build_linux_firmware.py` 重建。维护模式和加载器已部署到板上当前rootfs，原服务备份位于SD的 `/media/sd-mmcblk0p1/phase2_20261102/john-node.backup`、`init.backup`。
+
+首次MD5 Linux FPGA Manager加载成功：停接单/排空/停止服务/卸载john_dma/解绑DMA/写firmware/ABI算法READY自检/重新绑定/服务恢复均执行，随后UDP DMA返回2472字节、96/96摘要匹配。证据：`D:/Documents/ChatGPT/john/output/phase1_board_validation_20261102/md5/md5_response_linux_load.bin`。加载器4项测试和队列4项测试通过。
+
+当前rootfs缺少mmap/fcntl Python模块：工具使用32位devmem读取寄存器及libc flock；服务停止增加等待，避免未退出即卸载驱动。当前部署是RAM rootfs运行期变更，重启会恢复原镜像，尚未重建image.ub。主机临时HTTP传输服务已结束。其余四算法Linux加载、多轮切换、连续多批、异常恢复尚未验收，之前JTAG切换问题不能据本次单批成功宣布解决。源码尚未提交Git。
+
+## 第二阶段开发启动（2026-11-02）
+
+已新增维护模式停接单及本地Linux FPGA Manager加载器初版，并加入PetaLinux部署入口。队列4项测试通过，加载器仅语法检查；尚未部署及实板验证，不代表第二阶段完成。详细范围与待办见 `john-ax7020-common/reports/phase2_progress_20261102.md`。板上保持最新MD5验证基线。
+
+## 2026-11-02 MD5错误6追踪（最新结论）
+
+错误6/detail0是公共壳首拍检查失败，尚未进入MD5核。异常系统状态下，新旧MD5 bit均复现；正常Linux reboot后同一请求通过，再从干净启动状态切换到最新MD5 bit也通过，返回2472字节且96/96摘要匹配。板卡目前运行最新MD5、服务正常。证据：`D:/Documents/ChatGPT/john/output/phase1_board_validation_20261102/md5/md5_response_fresh_switch.bin`。
+
+因此排除“最新MD5 bit必然失败”的结论。问题与此前连续在线切换/异常传输后的系统状态有关；尚不能具体断言是HP端口残留事务、DMA状态或其他环节。仅重新绑定驱动不是充分恢复措施；系统重启是本次验证有效的恢复方法。需进一步抓取首拍TDATA/TKEEP/TLAST及DMA缓冲区，完善切换和超时恢复流程。下面较早失败现场记录为历史状态。
+
+## 2026-11-02 五算法实板闭环更新
+
+最新复测更正：切回新构建MD5后，既有请求触发PL错误6（状态0x00070118，detail=0），当前保留失败现场。下面MD5 96/96通过指既有基线，不能作为新MD5 bit通过证据；第一阶段尚有此阻塞项，优先排查。
+
+五算法已在同一块 AX7020、同一套 Linux/UDP/DMA 服务上完成单批闭环：bcrypt 32条（cost4）、DES 8核128候选比较掩码、MD5 96条、SHA256 96条（1000轮）、SHA512 64条（1000轮）。参考值核对通过。五份 XSA 公共接口审计通过，五工程100MHz布局布线时序通过。
+
+修复 bcrypt 公共壳启动互锁：先允许接收 John 初始化包，再由原始核处理；公共壳五算法仿真通过。JTAG切换整个PL后必须解绑/重新绑定 Linux DMA 驱动，否则出现PL输出完成而DMA等待超时。已用重新绑定流程验证恢复。当前已恢复MD5、节点服务运行。
+
+此结果是单节点确定性向量验证，不代表长稳、双节点或Linux FPGA Manager自动切换已验收。详情见 `john-ax7020-common/reports/phase1_board_validation_20261102.md`。本次改动尚未提交Git。
+
 ## 2026-10-30 16:45 健康监控与PS任务队列实板进展（最新）
 
 开发分支 `feature/node-health-queue-v0.2` 已实现并实板运行：任务状态按 `session+task+shard+batch` 独立保存；新增 `HEARTBEAT/HEARTBEAT_REPLY`、`HEALTH/HEALTH_REPLY` 和 `RESULT_ACK`；Linux节点默认支持8个在途任务和16个结果缓存。心跳使用上位机请求/节点应答，避免慢速上位机积压主动广播包。

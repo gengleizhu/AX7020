@@ -222,7 +222,11 @@ module john_axi_shell #(
  integer i;
  always @(posedge aclk)begin
   if(!aresetn)begin
-   state<=INIT;initialized<=0;reload<=0;have_aw<=0;have_w<=0;
+   // bcrypt receives the original John initialization/configuration packet
+   // through the normal task stream.  Its public shell therefore has to be
+   // ready before the native core can assert native_initialized; otherwise
+   // both sides wait forever.  Other algorithms keep the native-ready gate.
+   state<=(ALGORITHM==1)?IDLE:INIT;initialized<=(ALGORITHM==1);reload<=0;have_aw<=0;have_w<=0;
    s_axi_bvalid<=0;s_axi_rvalid<=0;s_axi_rdata<=0;s_axi_rresp<=0;s_axi_bresp<=0;
    cmd_seq<=0;ack_seq<=0;cmd_result<=0;timeout_us<=0;watchdog_us<=0;scratch<=0;
    first_error<=0;error_detail<=0;bad_offset<=0;bus_errors<=0;rejected<=0;successes<=0;failures<=0;

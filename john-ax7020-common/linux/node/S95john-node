@@ -51,7 +51,17 @@ case "$1" in
   stop)
     echo "Stopping john-node"
     if [ -f "$PIDFILE" ]; then
-      kill "$(cat "$PIDFILE")" 2>/dev/null || true
+      pid=$(cat "$PIDFILE")
+      kill "$pid" 2>/dev/null || true
+      count=0
+      while kill -0 "$pid" 2>/dev/null; do
+        count=$((count + 1))
+        if [ "$count" -ge 30 ]; then
+          echo "john-node stop timed out; PID file retained" >&2
+          exit 1
+        fi
+        sleep 1
+      done
       rm -f "$PIDFILE"
     fi
     ;;

@@ -1,0 +1,147 @@
+{
+  "bcrypt8": {
+    "algorithm": 1,
+    "xsa": "E:\\zhugenglei.work\\john\\john-ax7020-bcrypt8\\deliverables\\soc8\\john_ax7020_bcrypt8.xsa",
+    "xsa_sha256": "fe8ce3ff3352d60152e53933fd21ed722658f59ed1b0bc9332b10798f9c48e89",
+    "bit_sha256": "1b1e6f99413397ec342dd27e140c6df8930fe582b384fbfd238b4d493bf9fbff",
+    "hwh_sha256": "52004ea7a335d30e0a678330843dde2d90cad43b2329e96c763b6bb1968865af",
+    "ps7_init_sha256": "ee7bcdb56b7788a8d45f43b90b2623abf451efab3488f70e0816717fdfeb1364",
+    "addresses": [
+      [
+        "dma",
+        "0x40400000",
+        "0x4040FFFF"
+      ],
+      [
+        "status",
+        "0x41200000",
+        "0x4120FFFF"
+      ],
+      [
+        "unified",
+        "0x43C00000",
+        "0x43C0FFFF"
+      ]
+    ],
+    "mm2s_irq": 29,
+    "s2mm_irq": 30,
+    "startup_reset_present": true,
+    "embedded_exports_match": true
+  },
+  "descrypt8": {
+    "algorithm": 2,
+    "xsa": "E:\\zhugenglei.work\\john\\john-ax7020-descrypt8\\deliverables\\john_ax7020_descrypt8.xsa",
+    "xsa_sha256": "1aeafc9ac836cce72c940bff2b9d39316b025ec5d9c45e1f0867de133799b34c",
+    "bit_sha256": "599cf94853829f040a0ce30550f2dd43f966bde24e2181fe74e55ab8d377b552",
+    "hwh_sha256": "e1ba4fad6a7a1631055c82a211eb7942edc139c73528967fae613dd81b1bfa98",
+    "ps7_init_sha256": "ee7bcdb56b7788a8d45f43b90b2623abf451efab3488f70e0816717fdfeb1364",
+    "addresses": [
+      [
+        "dma",
+        "0x40400000",
+        "0x4040FFFF"
+      ],
+      [
+        "status",
+        "0x41200000",
+        "0x4120FFFF"
+      ],
+      [
+        "unified",
+        "0x43C00000",
+        "0x43C0FFFF"
+      ]
+    ],
+    "mm2s_irq": 29,
+    "s2mm_irq": 30,
+    "startup_reset_present": true,
+    "embedded_exports_match": true
+  },
+  "md5crypt8": {
+    "algorithm": 3,
+    "xsa": "E:\\zhugenglei.work\\john\\john-ax7020-md5crypt8\\deliverables\\john_ax7020_md5crypt8.xsa",
+    "xsa_sha256": "2de146fe82f3da985d8bd3d57c95ee634656b4734a0a8acfe3245f934bdb0531",
+    "bit_sha256": "c919904bd309830c610ef951b3d1ba187bf349c04d815886df42177c31b73fb0",
+    "hwh_sha256": "0861d459da9d2769bb36968889ebe216a2a16efe41c13c30feb173438847eedd",
+    "ps7_init_sha256": "ee7bcdb56b7788a8d45f43b90b2623abf451efab3488f70e0816717fdfeb1364",
+    "addresses": [
+      [
+        "dma",
+        "0x40400000",
+        "0x4040FFFF"
+      ],
+      [
+        "status",
+        "0x41200000",
+        "0x4120FFFF"
+      ],
+      [
+        "unified",
+        "0x43C00000",
+        "0x43C0FFFF"
+      ]
+    ],
+    "mm2s_irq": 29,
+    "s2mm_irq": 30,
+    "startup_reset_present": true,
+    "embedded_exports_match": true
+  },
+  "sha256crypt8": {
+    "algorithm": 4,
+    "xsa": "E:\\zhugenglei.work\\john\\john-ax7020-sha256crypt8\\deliverables\\john_ax7020_sha256crypt8.xsa",
+    "xsa_sha256": "306cfdec7a0b7bc2cd481694f12708f15de5ed1ebce2e21a746beab17787bcb1",
+    "bit_sha256": "0b543119ec0cb8e603239dfbab3e2025b5e7e7b43428c49a65bd76d0e1fe2e4f",
+    "hwh_sha256": "470be5249bb9d4d3caab2f4492c384ea153e2858ec0f324c49b7e5c2ac46e1a8",
+    "ps7_init_sha256": "ee7bcdb56b7788a8d45f43b90b2623abf451efab3488f70e0816717fdfeb1364",
+    "addresses": [
+      [
+        "dma",
+        "0x40400000",
+        "0x4040FFFF"
+      ],
+      [
+        "status",
+        "0x41200000",
+        "0x4120FFFF"
+      ],
+      [
+        "unified",
+        "0x43C00000",
+        "0x43C0FFFF"
+      ]
+    ],
+    "mm2s_irq": 29,
+    "s2mm_irq": 30,
+    "startup_reset_present": true,
+    "embedded_exports_match": true
+  },
+  "sha512crypt4": {
+    "algorithm": 5,
+    "xsa": "E:\\zhugenglei.work\\john\\john-ax7020-sha512crypt4\\deliverables\\john_ax7020_sha512crypt4.xsa",
+    "xsa_sha256": "8e0520a1b880b8d8fa163d336f4d45346250384e9467e3fa7108da5f972acabf",
+    "bit_sha256": "50bba45c962b552cbd835997805cbea0962771e6b5a2a3e283c476fa13de90aa",
+    "hwh_sha256": "dcf9290029432ce3c0849276cd6c90ab534e2139c185ce918004a6371b4f29e4",
+    "ps7_init_sha256": "ee7bcdb56b7788a8d45f43b90b2623abf451efab3488f70e0816717fdfeb1364",
+    "addresses": [
+      [
+        "dma",
+        "0x40400000",
+        "0x4040FFFF"
+      ],
+      [
+        "status",
+        "0x41200000",
+        "0x4120FFFF"
+      ],
+      [
+        "unified",
+        "0x43C00000",
+        "0x43C0FFFF"
+      ]
+    ],
+    "mm2s_irq": 29,
+    "s2mm_irq": 30,
+    "startup_reset_present": true,
+    "embedded_exports_match": true
+  }
+}
