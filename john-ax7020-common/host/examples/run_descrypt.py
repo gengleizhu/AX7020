@@ -6,4 +6,3 @@ TARGET = "..X8NBuQ4l6uQ"
 if __name__ == "__main__":
     args = parser("Run one real DES-crypt FPGA batch").parse_args()
     run(args, "descrypt", ["bad", "password", ""], TARGET)
-

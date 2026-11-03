@@ -30,4 +30,3 @@ def run(args, algorithm, candidates, target):
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if not result["matches"]:
         raise SystemExit("FPGA completed but the known candidate did not match")
-

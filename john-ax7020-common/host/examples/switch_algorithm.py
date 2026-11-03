@@ -19,4 +19,3 @@ args = parser.parse_args()
 with JohnFpgaClient(args.host, management_key=args.key) as client:
     result = client.switch_algorithm(args.algorithm, recover=args.recover)
 print(json.dumps(result, indent=2))
-
