@@ -4,12 +4,8 @@ set -eu
 BOOT=/media/sd-mmcblk0p1
 SOURCE=$BOOT/john-ssh
 grep -q " $BOOT " /proc/mounts || exit 0
-NODE_INTERFACE=eth0
-NODE_MAC=
-[ ! -r "$BOOT/john-node.conf" ] || . "$BOOT/john-node.conf"
-if [ -n "$NODE_MAC" ]; then
-    /sbin/ip link set "$NODE_INTERFACE" address "$NODE_MAC"
-fi
+# Network configuration is applied by john-node, after networking is ready.
+# Identity restoration must not depend on an early netlink operation succeeding.
 umask 077
 if [ -s "$SOURCE/dropbear_rsa_host_key" ]; then
     mkdir -p /etc/dropbear

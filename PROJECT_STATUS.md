@@ -1,5 +1,15 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-04 两板镜像最终替换通过
+
+修正版移除SSH恢复脚本中的早期网络操作，MAC由john-node及SD配置处理。PetaLinux 3593任务全部成功。最终镜像outputs/mac_image_20261104/image_fixed.ub，SHA256 52f1e6b0669795d326d2489fc20467c18a218dac0ea004ba177a5a854de8a226。两板SD的image.ub均已替换为此版本且校验一致，原已验证镜像分别备份为image.ub.pre_mac_20261104。75515441版有SSH启动回归，不再用于交付。
+
+逐板软件reboot验收：原SSH主机身份及授权通过、MAC分别02:70:20:00:00:01和02:70:20:00:00:02、节点ID和IP不变、SDK自动校时及认证管理能力查询通过。最终dual_node_md5.py返回passed=true，两板均为MD5。此次新镜像验证为软件重启，未把此前物理断电测试当作新镜像物理断电验收。
+
+## 2026-11-04 双板镜像替换进行中：第一板SSH回归
+
+第一板已备份SD旧image.ub为image.ub.pre_mac_20261104，并写入75515441...版镜像后reboot。MD5计算正常、MAC仍02:70:20:00:00:01，但SSH主机身份变化；暂停第二板更新。新增S40脚本在恢复身份前执行网络操作，存在set -e提前退出风险；已移除早期网络操作，MAC继续由john-node/SD配置处理。修正版已启动构建，日志VM /home/zgl/john-mac-fix-20261104.log。已请用户在第一板串口恢复SD保存的SSH身份和authorized_keys。第二板仍运行旧已验证镜像。此阶段不能报告双板替换完成。
+
 ## 2026-11-04 固定MAC版镜像重新生成
 
 VM地址更新为192.168.229.129，主机公钥与原10.10.10.107一致。同步S95john-node及john-ssh-restore后重新petalinux-build，3593任务全部成功；仅TFTP目录警告。镜像下载至outputs/mac_image_20261104/image.ub（26358704字节），SHA256 755154418d8f90d29c5851fc2f48bc910b010d64046239c273a195e8bfad9466，与VM一致。rootfs.tar.gz内两个启动脚本哈希与本地源码一致，管理服务和S40恢复链接均存在。构建日志同目录john-mac-image-20261104.log。此新镜像尚未替换两板SD，当前两板仍使用上一镜像加已验证SD配置。
