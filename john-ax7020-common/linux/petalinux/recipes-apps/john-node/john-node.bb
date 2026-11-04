@@ -4,6 +4,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI = "file://john_node_service.py \
+           file://john-ssh-restore \
            file://john_udp_protocol.py \
            file://john_health.py \
            file://john_bitstream.py \
@@ -48,8 +49,11 @@ do_install() {
 	install -d ${D}${libdir}
 	install -m 0755 ${WORKDIR}/libjohnhw.so ${D}${libdir}/libjohnhw.so
 	install -d ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/john-ssh-restore ${D}${sysconfdir}/init.d/john-ssh-restore
+	install -d ${D}${sysconfdir}/rcS.d
+	ln -s ../init.d/john-ssh-restore ${D}${sysconfdir}/rcS.d/S40john-ssh-restore
 	install -m 0755 ${WORKDIR}/S94john-manage ${D}${sysconfdir}/init.d/john-manage
 	install -m 0755 ${WORKDIR}/S95john-node ${D}${sysconfdir}/init.d/john-node
 }
 
-FILES_${PN} += "${sysconfdir}/init.d/john-manage ${sysconfdir}/init.d/john-node ${libdir}/libjohnhw.so"
+FILES_${PN} += "${sysconfdir}/init.d/john-ssh-restore ${sysconfdir}/rcS.d/S40john-ssh-restore ${sysconfdir}/init.d/john-manage ${sysconfdir}/init.d/john-node ${libdir}/libjohnhw.so"

@@ -1,5 +1,17 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-04 镜像部署和重启验收
+
+DES统一SDK实板通过，passlib对候选命中完成全量验证。新镜像加入管理服务PATH修复及S40john-ssh-restore；主机RSA密钥和authorized_keys由本板SD的john-ssh目录恢复，秘密文件不进入Git。PetaLinux 3593任务全部成功。镜像outputs/management_20261104/image_ssh_persist.ub的SHA256为e2e52a6c91c32c03902c7d64e90364c269d614c639a6fdf6321b22f0b2b3808c，SD传输校验一致，已替换image.ub。旧镜像保存在SD的image.ub.pre_management_20261104。
+
+已执行软件reboot：严格SSH主机验证和原私钥登录通过，john-node及john-manage自动运行；MD5计算、远程切换SHA256计算及切回MD5均命中已知口令。未执行物理断电测试。板卡时间重启后仍需通过可信SSH校准，本轮已校准；自动授时尚未实现，未校准时管理端口60秒时间窗可能拒绝请求。SD为FAT，SSH私钥及管理密钥随卡保存，需要控制卡的物理访问；每板使用独立凭据。28项公共软件回归测试通过。
+
+## 2026-11-04 管理接口实板续测
+
+板卡SSH授权已恢复。新版管理服务已部署到RAM rootfs，HMAC管理密钥保存在SD及主机项目外调试凭据目录，未提交Git。实测发现启动脚本PATH缺少/sbin导致rmmod调用失败；已补齐PATH，并经UDP recover成功恢复MD5。随后新版SDK通过远程切换完成SHA256、bcrypt、SHA512、MD5测试，均正确命中已知测试口令。DES新版SDK及冷启动验收仍待完成。
+
+2026-11-03构建镜像已成功下载至outputs/management_20261104/image.ub，SHA256为71c09013f8554eb2aea8668daa3535aeaad825364d8b890bd6451884e8877d7f；此镜像不包含本次PATH修复，尚未替换SD启动镜像。板卡时钟需同步才能通过管理时间戳认证；SSH主机密钥和登录授权的跨重启持久化仍待处理。
+
 ## 2026-11-03 续测：网络恢复与统一 SDK 实板验证
 
 网线重新连接后，UDP discover/health正常：eth0为1000 Mbps全双工，算法3就绪，maintenance=false。运行 `python john-ax7020-common/host/examples/run_md5crypt.py --host 169.254.173.138` 成功：请求10056字节、响应2472字节，3个有效候选，正确命中password；其余填充记录未暴露到上层。此结果验证了新版SDK的MD5路径，不能代替其余四算法新版SDK验收。

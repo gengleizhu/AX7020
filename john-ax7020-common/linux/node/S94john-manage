@@ -1,4 +1,6 @@
 #!/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
 
 PIDFILE=/var/run/john-manage.pid
 BOOT=/media/sd-mmcblk0p1
