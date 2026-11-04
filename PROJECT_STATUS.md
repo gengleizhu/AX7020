@@ -1,5 +1,11 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-04 联调包最终核对
+
+v4包内部版本号残留v3，已用scripts/package_host_sdk.py重新生成干净v5包，排除缓存和凭据，增加SHA256SUMS.json。output/AX7020_Python_Integration_Kit_20261104_v5.zip包含28文件，SHA256为9e361176a43c4439e0ef8e9c0fc46380624d3b6e1b45d59343df6c903c60edad。解压后逐文件哈希及SDK导入/组包通过；旧PDF明确标为historical，新接口/授时以Markdown及源码为准。
+
+第二节点SD准备目录含四个启动文件、独立节点配置和README。目前未识别到用户确认的第二张SD，未格式化或写卡；第二节点实板部署仍需接卡、核对板型及盘符后进行。
+
 ## 2026-11-04 物理断电及自动授时验收
 
 用户实际断电再上电后，观测Linux uptime=21秒，SSH原指纹和私钥通过，两个UDP服务自启。新增SDK time_sync_ssh参数通过已验证SSH在连接时自动授时，管理认证成功；随后SHA256及MD5任务均命中测试口令。此为物理断电验收。授时依赖上位机连接，不是板端独立NTP服务。
