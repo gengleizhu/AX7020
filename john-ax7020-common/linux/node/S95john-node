@@ -33,13 +33,24 @@ rotate_log() {
 
 case "$1" in
   start)
-    [ ! -x /etc/init.d/john-manage ] || /etc/init.d/john-manage start || true
     [ -e /dev/john-dma ] || exit 0
     [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && exit 0
+    if [ -n "${NODE_MAC:-}" ]; then
+      current_mac=$(cat "/sys/class/net/$NODE_INTERFACE/address")
+      if [ "$current_mac" != "$NODE_MAC" ]; then
+        /sbin/ip link set "$NODE_INTERFACE" down || exit 1
+        /sbin/ip link set "$NODE_INTERFACE" address "$NODE_MAC" || {
+          /sbin/ip link set "$NODE_INTERFACE" up
+          exit 1
+        }
+        /sbin/ip link set "$NODE_INTERFACE" up || exit 1
+      fi
+    fi
     if [ -n "${NODE_IP:-}" ]; then
       /sbin/ip addr replace "$NODE_IP" dev "$NODE_INTERFACE" || true
       /sbin/ip link set "$NODE_INTERFACE" up || true
     fi
+    [ ! -x /etc/init.d/john-manage ] || /etc/init.d/john-manage start || true
     rotate_log
     echo "Starting john-node"
     /usr/bin/python3 /usr/sbin/john-node \
