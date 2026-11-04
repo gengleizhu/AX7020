@@ -1,5 +1,11 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-04 第二节点SD已写入
+
+用户确认第二块与第一块完全相同的AX7020，目标为F: BOOT。核对USB磁盘2、序列号121220160204、容量31266439168字节；F为约360MiB FAT32第一分区，G分区未修改。只读chkdsk检查无错误，无需格式化。旧BOOT.BIN/image.ub已备份至outputs/node2_sd_original_20261104。新BOOT.BIN/image.ub/boot.scr/system.dtb/john-node.conf已覆盖到F根目录，全部SHA256与准备包一致。
+
+第二节点配置ax7020-2、169.254.173.139/16；镜像默认网络为DHCP，不含第一节点固定IP，第一节点IP由各SD的john-node.conf提供。未复制第一板SSH私钥或管理密钥。待安全弹出SD、插入第二板并上电后验证启动与网络，再进行独立密钥授权和双节点验收。
+
 ## 2026-11-04 联调包最终核对
 
 v4包内部版本号残留v3，已用scripts/package_host_sdk.py重新生成干净v5包，排除缓存和凭据，增加SHA256SUMS.json。output/AX7020_Python_Integration_Kit_20261104_v5.zip包含28文件，SHA256为9e361176a43c4439e0ef8e9c0fc46380624d3b6e1b45d59343df6c903c60edad。解压后逐文件哈希及SDK导入/组包通过；旧PDF明确标为historical，新接口/授时以Markdown及源码为准。
