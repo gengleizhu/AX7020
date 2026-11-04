@@ -1,5 +1,11 @@
 # AX7020 双节点 John FPGA 算法加速项目状态
 
+## 2026-11-04 物理断电及自动授时验收
+
+用户实际断电再上电后，观测Linux uptime=21秒，SSH原指纹和私钥通过，两个UDP服务自启。新增SDK time_sync_ssh参数通过已验证SSH在连接时自动授时，管理认证成功；随后SHA256及MD5任务均命中测试口令。此为物理断电验收。授时依赖上位机连接，不是板端独立NTP服务。
+
+联调包output/AX7020_Python_Integration_Kit_20261104_v4.zip包含新SDK及DEPLOYMENT_FINAL.md补充说明，旧PDF保持历史版本。第二块用户确认未连接、SD未初始化；已准备outputs/node2_sd_20261104启动文件及建议ID ax7020-2、IP 169.254.173.139。仅适用于确认同型号AX7020后部署，尚未写入第二张SD或启动验收，第二节点需要单独生成主机密钥、管理密钥和登录授权。
+
 ## 2026-11-04 镜像部署和重启验收
 
 DES统一SDK实板通过，passlib对候选命中完成全量验证。新镜像加入管理服务PATH修复及S40john-ssh-restore；主机RSA密钥和authorized_keys由本板SD的john-ssh目录恢复，秘密文件不进入Git。PetaLinux 3593任务全部成功。镜像outputs/management_20261104/image_ssh_persist.ub的SHA256为e2e52a6c91c32c03902c7d64e90364c269d614c639a6fdf6321b22f0b2b3808c，SD传输校验一致，已替换image.ub。旧镜像保存在SD的image.ub.pre_management_20261104。

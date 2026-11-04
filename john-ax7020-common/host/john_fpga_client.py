@@ -301,7 +301,11 @@ class JohnFpgaClient:
 
     def __init__(self, host: str, port: int = 42000, timeout: float = 0.5,
                  retries: int = 5, management_port: int = 42001,
-                 management_key: Optional[Union[str, bytes, Path]] = None):
+                 management_key: Optional[Union[str, bytes, Path]] = None,
+                 time_sync_ssh: Optional[Dict[str, Any]] = None):
+        if time_sync_ssh is not None:
+            from john_time_sync import sync_time
+            sync_time(host, **time_sync_ssh)
         self.transport = Client(host, port, timeout, retries)
         self.management = (ManagementClient(host, management_port, management_key,
                                             timeout=max(timeout, 1.0), retries=retries)
